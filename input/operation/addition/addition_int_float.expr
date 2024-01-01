@@ -1,0 +1,30 @@
+int main(){
+    int anne = 1;
+    int bob = 2;
+
+    float coco = 1.1;
+    float donuts = 2;
+    
+    float epinard;
+    epinard = coco + donuts;
+    printf("epinard :");
+    print(epinard);
+    printf("   ");
+
+    float fromage;
+    fromage = anne + bob ;
+    printf("fromage :");
+    print(fromage);
+    printf("   ");
+
+    float gruyere;
+    gruyere = anne + coco + 5.6 ;
+    printf("gruyere :");
+    print(gruyere);
+    printf("   ");
+
+    gruyere = 5.4 + 10 + gruyere;
+    printf("gruyere :");
+    print(gruyere);
+    printf("   ");
+}
