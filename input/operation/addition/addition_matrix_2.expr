@@ -1,0 +1,39 @@
+int main() {
+  matrix anne[2] = {1, 2};
+  matrix bob[2] = {3, 4};
+  float f = 6.7;
+  int i = 3;
+
+  matrix singe[2];
+  singe = bob + 3;
+
+  printf("singe : ");
+  printmat(singe);
+
+  matrix vache[2];
+  vache = i + bob;
+
+  printf("vache : ");
+  printmat(vache);
+
+  matrix cochon[2];
+  cochon = bob + f;
+
+  printf("cochon : ");
+  printmat(cochon);
+
+  matrix coq[2];
+  coq = bob + f + anne + i + 1;
+
+  printf("coq : ");
+  printmat(coq);
+
+  matrix elephant[3][2] = {{4, 2}, {3, 2}, {1, 2}};
+  matrix girafe[3][2] = {{1, 1}, {2, 2}, {4, 3}};
+
+  matrix hippo[3][2];
+  hippo = elephant + f + girafe + i + 1;
+
+  printf("hippo : ");
+  printmat(hippo);
+}

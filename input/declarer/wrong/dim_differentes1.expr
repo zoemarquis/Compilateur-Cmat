@@ -1,0 +1,6 @@
+int main() {
+  matrix A[3];
+  matrix B[4][5];
+  matrix C[4] = {1,2,3};
+  matrix D[2][3] = {{1,2,3},{9,8,7}};
+}

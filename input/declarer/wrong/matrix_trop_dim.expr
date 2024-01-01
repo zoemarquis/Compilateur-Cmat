@@ -1,0 +1,1 @@
+int main() { matrix B[4][5][6]; }

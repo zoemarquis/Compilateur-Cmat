@@ -1,0 +1,43 @@
+int main(){
+    matrix anne[2] = {1,2};
+    matrix bob[2] = {3,4};
+
+    matrix chien[2];
+    chien = anne;
+
+    matrix dodo[2];
+    dodo = anne + bob;
+
+    printf("anne : ");
+    printmat(anne);
+
+    printf("bob : ");
+    printmat(bob);
+
+    printf("chien : ");
+    printmat(chien);
+
+    printf("dodo : ");
+    printmat(dodo);
+
+    matrix zoe[3][3] = {{1,2,3},{4,5,6},{4,5,7}};
+    matrix charlotte[3][3] = {{3,2,3},{4,5,9},{4,5,7}};
+
+    matrix katia[3][3];
+    katia = zoe + charlotte + zoe;
+
+    printf("zoé : ");
+    printmat(zoe);
+
+    printf("charlotte : ");
+    printmat(charlotte);
+
+    printf("katia : ");
+    printmat(katia);
+
+    matrix sabina[2];
+    sabina = bob + 3;
+
+    printf("sabina : ");
+    printmat(sabina);
+}

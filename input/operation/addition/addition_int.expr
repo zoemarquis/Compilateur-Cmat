@@ -1,0 +1,34 @@
+int main(){
+    int aa = 1;
+    int bob = 2;
+    int cc;
+    cc = 3;
+    int dd;
+    dd = aa + 3;
+    int ee ;
+    ee = bob + bob;
+    int ff ;
+    ff = cc + 2;
+    int gg ;
+    gg = 3 + 3;
+    int hh ;
+    hh = 7 + 2 + 1;
+    int ii ;
+    hh = 7 + aa + 1 + 2 + bob + cc;
+
+    print(aa);
+    printf("     ");
+    print(bob);
+    printf("     ");
+    print(cc);
+    printf("     ");
+    print(dd);
+    printf("     ");
+    print(ee);
+    printf("     ");
+    print(ff);
+    printf("     ");
+    print(gg);
+    printf("     ");
+    print(hh);
+}

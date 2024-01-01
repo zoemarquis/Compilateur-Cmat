@@ -1,0 +1,11 @@
+<Erreur token inconnu : ':'>
+.data
+newline: .asciiz "\n"
+tab: .asciiz "\t"
+a: .word 3
+b: .word 4
+	.text
+main:
+# exit
+	li $v0,10
+	syscall
