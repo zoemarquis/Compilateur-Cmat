@@ -1,0 +1,7 @@
+int main(){
+    int a;
+    float coucou;
+    matrix maaaaat[1];
+    matrix maaaat[2][2];
+    matrix ma[2], mat[3];
+}

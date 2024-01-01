@@ -1,9 +1,4 @@
 %{
-    //#include "tokens.h"
-    //#include "../matrix.h"
-    //#include "../fichier.h"
-    //#include "parser.tab.h"
-    //#include "../src/hashtab/hashtab.h"
     #include "generation.h"
     #include "symbtab.h"
     #include "EXPR.tab.h"
@@ -38,7 +33,7 @@ STRING \"([^\"\\]|(\\\.))*\"
 "else"                                      { return ELSE;}
 "while"                                     { return WHILE;}
 "for"                                       { return FOR;}
-{ID}                                        { //yylval.strval = strdup(yytext);
+{ID}                                        {
                                                 strncpy(yylval.strval,yytext,7);
                                                 yylval.strval[7] = '\0';
                                                 return ID;}

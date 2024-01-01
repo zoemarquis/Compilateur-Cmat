@@ -10,7 +10,7 @@ int main() {
   CODE = code_new();
   int r = yyparse();
   // symtable_dump(SYMTAB);
-  // .data : créer une fonction pour àa, pour que ce soit + propre
+  // .data : créer une fonction pour ça, pour que ce soit + propre
   printf(".data\n");
   printf("newline: .asciiz \"\\n\"\n");
   printf("tab: .asciiz \"\\t\"\n");
@@ -55,5 +55,7 @@ int main() {
   code_dump(CODE);
   symtable_free(SYMTAB);
   code_free(CODE);
+
+  yylex_destroy();
   return r;
 }

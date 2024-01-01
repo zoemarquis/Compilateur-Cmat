@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "EXPR.tab.h"
+
 unsigned string_num = 1;
 unsigned const_int_num = 1;
 unsigned const_float_num = 1;
@@ -95,6 +97,7 @@ Symbol *symtable_put(SymTable *t, const char *id, variable *var) {
   return s;
 }
 
+// inutile ?
 void symtable_dump(SymTable *t) {
   unsigned int i;
   for (i = 0; i < t->size; i++) {
@@ -108,6 +111,14 @@ void symtable_dump(SymTable *t) {
 }
 
 void symtable_free(SymTable *t) {
+  unsigned int i;
+  for (i = 0; i < t->size; i++) {
+    if (t->symbols[i].kind == NAME) {
+      delete_var(t->symbols[i].var);
+    } else if (t->symbols[i].kind == STRING) {
+      free(t->symbols[i].string);
+    }
+  }
   free(t->symbols);
   free(t);
 }
@@ -136,11 +147,10 @@ variable **ajouter_var_liste(variable **liste, unsigned taille, variable *var) {
 }
 
 void delete_var(variable *var) {
-  free(var->name);
-  /*if (var->type == MATRIX) {
-    delete_matrix(var->valeur.matrix);
-  }*/
-  free(var);
+  if (var->type == MATRIX) {
+    delete_matrix(var->val.matrix);
+  }
+  if (var) free(var);
 }
 
 // MATRIX
