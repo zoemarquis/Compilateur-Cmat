@@ -2,8 +2,8 @@
 
 #include "EXPR.tab.h"
 
-struct symtable* SYMTAB;
-struct code* CODE;
+SymTable* SYMTAB;
+Code* CODE;
 
 int main() {
   SYMTAB = symtable_new();
@@ -15,7 +15,7 @@ int main() {
   printf("newline: .asciiz \"\\n\"\n");
   printf("tab: .asciiz \"\\t\"\n");
   for (int i = 0; i < SYMTAB->size; i++) {
-    struct symbol s = SYMTAB->symbols[i];
+    Symbol s = SYMTAB->symbols[i];
     if (s.kind == NAME) {
       switch (s.var->type) {
         case INT:

@@ -31,7 +31,7 @@ typedef struct _liste_var {
   unsigned taille;
 } Liste_Variable;
 
-struct symbol {
+typedef struct _symbol {
   enum { NAME, CONST_INT, CONST_FLOAT, STRING } kind;
   name_t name;
   union {
@@ -40,30 +40,30 @@ struct symbol {
     int const_int;
     float const_float;
   };
-};
+} Symbol;
 
-struct symtable {
+typedef struct _symtable {
   unsigned int capacity;
   unsigned int temporary;
   unsigned int size;
-  struct symbol *symbols;
-};
+  Symbol *symbols;
+} SymTable;
 
-struct symtable *symtable_new();
+SymTable *symtable_new();
 
-struct symbol *symtable_const_int(struct symtable *t, int v);
+Symbol *symtable_const_int(SymTable *t, int v);
 
-struct symbol *symtable_const_float(struct symtable *t, float v);
+Symbol *symtable_const_float(SymTable *t, float v);
 
-struct symbol *symtable_get(struct symtable *t, const char *s);
+Symbol *symtable_get(SymTable *t, const char *s);
 
-struct symbol *symtable_put(struct symtable *t, const char *id, variable *var);
+Symbol *symtable_put(SymTable *t, const char *id, variable *var);
 
-void symtable_dump(struct symtable *t);
+void symtable_dump(SymTable *t);
 
-struct symbol *symtable_string(struct symtable *t, const char *string);
+Symbol *symtable_string(SymTable *t, const char *string);
 
-void symtable_free(struct symtable *t);
+void symtable_free(SymTable *t);
 
 variable *creer_variable(name_t name, unsigned type, bool init, valeur val);
 

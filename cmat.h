@@ -7,8 +7,8 @@
 #include "generation.h"
 #include "symbtab.h"
 
-extern struct symtable* SYMTAB;
-extern struct code* CODE;
+extern SymTable* SYMTAB;
+extern Code* CODE;
 
 extern int yyparse();
 

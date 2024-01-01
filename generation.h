@@ -3,7 +3,7 @@
 
 #include "symbtab.h"
 
-struct quad {
+typedef struct _quad {
   enum quad_kind {
     BOP_PLUS,
     BOP_MINUS,
@@ -14,26 +14,25 @@ struct quad {
     CALL_PRINTMAT,
     CALL_PRINTF
   } kind;
-  struct symbol *sym1;
-  struct symbol *sym2;
-  struct symbol *sym3;
-};
+  Symbol *sym1;
+  Symbol *sym2;
+  Symbol *sym3;
+} Quad;
 
-struct code {
+typedef struct _code {
   unsigned int capacity;
   unsigned int nextquad;
-  struct quad *quads;
-};
+  Quad *quads;
+} Code;
 
-struct code *code_new();
+Code *code_new();
 
-void gencode(struct code *c, enum quad_kind k, struct symbol *s1,
-             struct symbol *s2, struct symbol *s3);
+void gencode(Code *c, enum quad_kind k, Symbol *s1, Symbol *s2, Symbol *s3);
 
-struct symbol *newtemp(struct symtable *t, unsigned type, valeur v);
+Symbol *newtemp(SymTable *t, unsigned type, valeur v);
 
-void code_dump(struct code *c);
+void code_dump(Code *c);
 
-void code_free(struct code *c);
+void code_free(Code *c);
 
 #endif

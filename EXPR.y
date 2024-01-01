@@ -13,9 +13,9 @@ extern int yylex();
     float floatval;
     name_t strval;
     struct {
-        struct symbol * ptr;
+        Symbol * ptr;
     } exprval;
-    struct symbol * variable;
+    Symbol * variable;
     unsigned type;
     Liste_Variable l_var;
     variable * var;
@@ -68,7 +68,7 @@ instr
   | ID ASSIGN expr
     {
       // sémantique : vérifier que l'id existe
-      struct symbol * id = symtable_get(SYMTAB,$1);
+      Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"La variable '%s' n'a jamais été déclarée.\n",$1);
         exit(1);
@@ -143,7 +143,7 @@ declaration_variable
         $2.liste[i]->type = $1;
 
         // vérifier que l'entrée n'existe pas
-        struct symbol * id = symtable_get(SYMTAB,$2.liste[i]->name);
+        Symbol * id = symtable_get(SYMTAB,$2.liste[i]->name);
         if (id) {
           fprintf(stderr,"La variable '%s' a déjà été déclarée.\n",$2.liste[i]->name);
           exit(1);
@@ -302,7 +302,7 @@ valeur_matrix
 
 afficher 
   : PRINT LPAR ID RPAR {
-    struct symbol * id = symtable_get(SYMTAB,$3);
+    Symbol * id = symtable_get(SYMTAB,$3);
     if (id == NULL) {
       fprintf(stderr,"La variable '%s' n'a jamais été déclarée, elle ne peut donc pas être affichée.\n",$3);
       exit(1);
@@ -317,7 +317,7 @@ afficher
   }
 
   | PRINTMAT LPAR ID RPAR {
-    struct symbol * id = symtable_get(SYMTAB,$3);
+    Symbol * id = symtable_get(SYMTAB,$3);
     if (id == NULL) {
       fprintf(stderr,"La matrice '%s' n'a jamais été déclarée, elle ne peut donc pas être affichée.\n",$3);
       exit(1);
@@ -332,7 +332,7 @@ afficher
   }
 
   | PRINTF LPAR V_STRING RPAR {
-      struct symbol * id = symtable_string(SYMTAB, $3);
+      Symbol * id = symtable_string(SYMTAB, $3);
       gencode(CODE,CALL_PRINTF,id,NULL,NULL);
     }
   ;
@@ -422,7 +422,7 @@ expr
   }
 | ID
   { 
-    struct symbol * id = symtable_get(SYMTAB,$1);
+    Symbol * id = symtable_get(SYMTAB,$1);
     if ( id == NULL ){
         fprintf(stderr,"La variable '%s' n'a jamais été déclarée.\n",$1);
         exit(1);

@@ -9,17 +9,17 @@
 
 unsigned cpt_label = 0;
 
-struct code *code_new() {
-  struct code *r = malloc(sizeof(struct code));
+Code *code_new() {
+  Code *r = malloc(sizeof(Code));
   r->capacity = 1024;
-  r->quads = malloc(r->capacity * sizeof(struct quad));
+  r->quads = malloc(r->capacity * sizeof(Quad));
   r->nextquad = 0;
   return r;
 }
 
-static void code_grow(struct code *c) {
+static void code_grow(Code *c) {
   c->capacity += 1024;
-  c->quads = realloc(c->quads, c->capacity * sizeof(struct quad));
+  c->quads = realloc(c->quads, c->capacity * sizeof(Quad));
   if (c->quads == NULL) {
     fprintf(stderr,
             "Erreur lors de la tentative d'expansion de la liste des "
@@ -29,10 +29,10 @@ static void code_grow(struct code *c) {
   }
 }
 
-void gencode(struct code *c, enum quad_kind k, struct symbol *s1,
-             struct symbol *s2, struct symbol *s3) {
+void gencode(Code *c, enum quad_kind k, Symbol *s1,
+             Symbol *s2, Symbol *s3) {
   if (c->nextquad == c->capacity) code_grow(c);
-  struct quad *q = &(c->quads[c->nextquad]);
+  Quad *q = &(c->quads[c->nextquad]);
   q->kind = k;
   q->sym1 = s1;
   q->sym2 = s2;
@@ -40,8 +40,8 @@ void gencode(struct code *c, enum quad_kind k, struct symbol *s1,
   ++(c->nextquad);
 }
 
-struct symbol *newtemp(struct symtable *t, unsigned type, valeur val) {
-  struct symbol *s;
+Symbol *newtemp(SymTable *t, unsigned type, valeur val) {
+  Symbol *s;
   name_t name;
   sprintf(name, "t%d", t->temporary);
   variable *v = creer_variable(name, type, false, val);
@@ -50,7 +50,7 @@ struct symbol *newtemp(struct symtable *t, unsigned type, valeur val) {
   return s;
 }
 
-static void symbol_dump(struct symbol *s) {
+static void symbol_dump(Symbol *s) {
   switch (s->kind) {
     case NAME:
       printf("%s", s->name);
@@ -66,7 +66,7 @@ static void symbol_dump(struct symbol *s) {
   }
 }
 
-static void quad_dump(struct quad *q) {
+static void quad_dump(Quad *q) {
   switch (q->kind) {
     case COPY:
 
@@ -409,7 +409,7 @@ static void quad_dump(struct quad *q) {
   }
 }
 
-void code_dump(struct code *c) {
+void code_dump(Code *c) {
   unsigned int i;
 
   printf("\t.text\n");
@@ -424,7 +424,7 @@ void code_dump(struct code *c) {
   printf("\tsyscall\n");
 }
 
-void code_free(struct code *c) {
+void code_free(Code *c) {
   free(c->quads);
   free(c);
 }

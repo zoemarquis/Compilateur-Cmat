@@ -9,18 +9,18 @@ unsigned string_num = 1;
 unsigned const_int_num = 1;
 unsigned const_float_num = 1;
 
-struct symtable *symtable_new() {
-  struct symtable *t = malloc(sizeof(struct symtable));
+SymTable *symtable_new() {
+  SymTable *t = malloc(sizeof(SymTable));
   t->capacity = 1024;
-  t->symbols = malloc(t->capacity * sizeof(struct symbol));
+  t->symbols = malloc(t->capacity * sizeof(Symbol));
   t->temporary = 0;
   t->size = 0;
   return t;
 }
 
-static void symtable_grow(struct symtable *t) {
+static void symtable_grow(SymTable *t) {
   t->capacity += 1024;
-  t->symbols = realloc(t->symbols, t->capacity * sizeof(struct symbol));
+  t->symbols = realloc(t->symbols, t->capacity * sizeof(Symbol));
   if (t->symbols == NULL) {
     fprintf(stderr,
             "Erreur lors de la tentative d'aggreandissement de la table des "
@@ -30,13 +30,13 @@ static void symtable_grow(struct symtable *t) {
   }
 }
 
-struct symbol *symtable_const_int(struct symtable *t, int v) {
+Symbol *symtable_const_int(SymTable *t, int v) {
   unsigned int i;
   for (i = 0; i < t->size && t->symbols[i].const_int != v; i++)
     ;
   if (i == t->size) {
     if (t->size == t->capacity) symtable_grow(t);
-    struct symbol *s = &(t->symbols[t->size]);
+    Symbol *s = &(t->symbols[t->size]);
     s->kind = CONST_INT;
     sprintf(s->name, "%s%d", "cint", const_int_num);
     const_int_num++;
@@ -48,13 +48,13 @@ struct symbol *symtable_const_int(struct symtable *t, int v) {
   }
 }
 
-struct symbol *symtable_const_float(struct symtable *t, float v) {
+Symbol *symtable_const_float(SymTable *t, float v) {
   unsigned int i;
   for (i = 0; i < t->size && t->symbols[i].const_float != v; i++)
     ;
   if (i == t->size) {
     if (t->size == t->capacity) symtable_grow(t);
-    struct symbol *s = &(t->symbols[t->size]);
+    Symbol *s = &(t->symbols[t->size]);
     s->kind = CONST_FLOAT;
     sprintf(s->name, "%s%d", "cflt", const_float_num);
     const_float_num++;
@@ -66,9 +66,9 @@ struct symbol *symtable_const_float(struct symtable *t, float v) {
   }
 }
 
-struct symbol *symtable_string(struct symtable *t, const char *string) {
+Symbol *symtable_string(SymTable *t, const char *string) {
   if (t->size == t->capacity) symtable_grow(t);
-  struct symbol *s = &(t->symbols[t->size]);
+  Symbol *s = &(t->symbols[t->size]);
   s->kind = STRING;
   sprintf(s->name, "%s%d", "str", string_num);
   string_num++;
@@ -77,7 +77,7 @@ struct symbol *symtable_string(struct symtable *t, const char *string) {
   return s;
 }
 
-struct symbol *symtable_get(struct symtable *t, const char *id) {
+Symbol *symtable_get(SymTable *t, const char *id) {
   unsigned int i;
   for (i = 0; i < t->size && strcmp(t->symbols[i].name, id) != 0; i++)
     ;
@@ -85,9 +85,9 @@ struct symbol *symtable_get(struct symtable *t, const char *id) {
   return NULL;
 }
 
-struct symbol *symtable_put(struct symtable *t, const char *id, variable *var) {
+Symbol *symtable_put(SymTable *t, const char *id, variable *var) {
   if (t->size == t->capacity) symtable_grow(t);
-  struct symbol *s = &(t->symbols[t->size]);
+  Symbol *s = &(t->symbols[t->size]);
   s->kind = NAME;
   strcpy(s->name, id);
   s->var = var;
@@ -95,7 +95,7 @@ struct symbol *symtable_put(struct symtable *t, const char *id, variable *var) {
   return s;
 }
 
-void symtable_dump(struct symtable *t) {
+void symtable_dump(SymTable *t) {
   unsigned int i;
   for (i = 0; i < t->size; i++) {
     if (t->symbols[i].kind == CONST_INT)
@@ -107,7 +107,7 @@ void symtable_dump(struct symtable *t) {
   printf("       --------\n");
 }
 
-void symtable_free(struct symtable *t) {
+void symtable_free(SymTable *t) {
   free(t->symbols);
   free(t);
 }
