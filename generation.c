@@ -29,8 +29,7 @@ static void code_grow(Code *c) {
   }
 }
 
-void gencode(Code *c, enum quad_kind k, Symbol *s1,
-             Symbol *s2, Symbol *s3) {
+void gencode(Code *c, enum quad_kind k, Symbol *s1, Symbol *s2, Symbol *s3) {
   if (c->nextquad == c->capacity) code_grow(c);
   Quad *q = &(c->quads[c->nextquad]);
   q->kind = k;
@@ -333,6 +332,126 @@ static void quad_dump(Quad *q) {
       printf("\tsw $t0, %s\n", q->sym1->name);
       break;
 
+    // extraction
+    case EXTR_LIGNE:
+
+      printf("\tlw $t3, %s_rows\n", q->sym1->name);  // sym1_cols
+      printf("\tlw $t4, %s_cols\n", q->sym2->name);  // sym2_rows
+
+      printf("\tli $t0, 0\n");  // $t0 = i
+      printf("boucle_extrligne_i_%d:\n", cpt_label);
+      printf("bge $t0, $t3, i_suivant_%d\n", cpt_label);
+
+      printf("\tli $t1, 0\n");  // $t1 = j
+      printf("boucle_extrligne_j_%d:\n", cpt_label);
+      printf("\t\tbge $t1, $t4, j_suivant_%d\n", cpt_label);
+
+      printf("\t\tla $a0, %s\n", q->sym2->name);  // matrice originale
+      printf("\t\tla $a1, %s\n", q->sym1->name);  // matrice cible
+      printf("\t\tla $a2, %s\n", q->sym3->name);
+      // liste des indices des colonnes à extraire
+
+      printf("\t\tmove $t2, $t0\n");
+      printf("\t\tsll $t2, $t2, 2\n");
+      printf("\t\tadd $a2, $a2, $t2\n");
+      printf("\t\tlw $t5, 0($a2)\n");  // $t5 = indice[i]
+
+      printf("\t\tlw $t6, %s_cols\n", q->sym2->name);
+      printf("\t\tmul $t6, $t5, $t6\n");
+      printf("\t\tadd $t6, $t6, $t1 \n");  //
+      printf("\t\tsll $t6, $t6, 2\n");
+      printf("\t\tadd $a0, $a0, $t6\n");
+      printf("\t\tl.s $f0, 0($a0)\n");
+
+      printf("\t\tlw $t7, %s_cols\n", q->sym1->name);
+      printf("\t\tmul $t7, $t0, $t7\n");
+      printf("\t\tadd $t7, $t7, $t1\n");  //
+      printf("\t\tsll $t7, $t7, 2\n");
+      printf("\t\tadd $a1, $a1, $t7\n");
+
+      printf("\t\ts.s $f0, 0($a1)\n");
+
+      printf("\t\taddi $t1, $t1, 1\n");  // j++
+      printf("\t\tj boucle_extrligne_j_%d\n", cpt_label);
+
+      printf("\tj_suivant_%d:\n", cpt_label);
+      printf("\taddi $t0, $t0, 1\n");  // i++
+      printf("\tj boucle_extrligne_i_%d\n", cpt_label);
+      printf("i_suivant_%d:\n", cpt_label);
+
+      cpt_label++;
+
+      break;
+
+    case EXTR_COLONNE:
+
+      printf("\tlw $t3, %s_cols\n", q->sym1->name);  // sym1_cols
+      printf("\tlw $t4, %s_rows\n", q->sym2->name);  // sym2_rows
+
+      printf("\tli $t0, 0\n");  // $t0 = i
+      printf("boucle_extrcolonne_i_%d:\n", cpt_label);
+      printf("bge $t0, $t3, i_suivant_%d\n", cpt_label);
+
+      printf("\tli $t1, 0\n");  // $t1 = j
+      printf("boucle_extrcolonne_j_%d:\n", cpt_label);
+      printf("\t\tbge $t1, $t4, j_suivant_%d\n", cpt_label);
+
+      printf("\t\tla $a0, %s\n", q->sym2->name);  // matrice originale
+      printf("\t\tla $a1, %s\n", q->sym1->name);  // matrice cible
+      printf("\t\tla $a2, %s\n", q->sym3->name);
+      // liste des indices des colonnes à extraire
+
+      printf("\t\tmove $t2, $t0\n");
+      printf("\t\tsll $t2, $t2, 2\n");
+      printf("\t\tadd $a2, $a2, $t2\n");
+      printf("\t\tlw $t5, 0($a2)\n");  // $t5 = indice[i]
+
+      printf("\t\tlw $t6, %s_cols\n", q->sym2->name);
+      printf("\t\tmul $t6, $t1, $t6\n");
+      printf("\t\tadd $t6, $t6, $t5 \n");  // A_cols * j + indice[i]
+      printf("\t\tsll $t6, $t6, 2\n");
+      printf("\t\tadd $a0, $a0, $t6\n");
+      printf("\t\tl.s $f0, 0($a0)\n");
+
+      printf("\t\tlw $t7, %s_cols\n", q->sym1->name);
+      printf("\t\tmul $t7, $t1, $t7\n");
+      printf("\t\tadd $t7, $t7, $t0\n");  // B_rows * j + i
+      printf("\t\tsll $t7, $t7, 2\n");
+      printf("\t\tadd $a1, $a1, $t7\n");
+
+      printf("\t\ts.s $f0, 0($a1)\n");
+
+      printf("\t\taddi $t1, $t1, 1\n");  // j++
+      printf("\t\tj boucle_extrcolonne_j_%d\n", cpt_label);
+
+      printf("\tj_suivant_%d:\n", cpt_label);
+      printf("\taddi $t0, $t0, 1\n");  // i++
+      printf("\tj boucle_extrcolonne_i_%d\n", cpt_label);
+      printf("i_suivant_%d:\n", cpt_label);
+
+      cpt_label++;
+
+      break;
+
+    case GET_ELEMENT:
+      printf("\tli $t0, %d\n", q->sym3->tuple.ligne);
+      printf("\tli $t1, %d\n", q->sym3->tuple.colonne);
+
+      printf("\tlw $t2, %s_cols\n", q->sym2->name);
+
+      printf("\tmul $t3, $t0, $t2\n");
+      printf("\tadd $t3, $t3, $t1\n");
+      printf("\tsll $t3, $t3, 2\n");
+
+      printf("\tla $a0, %s\n", q->sym2->name);
+      printf("\tadd $a0, $a0, $t3\n");
+
+      printf("\tl.s $f0, 0($a0)\n");
+      printf("\ts.s $f0, %s\n", q->sym1->name);
+
+      break;
+
+    // affichage :
     case CALL_PRINT:
       if (q->sym1->var->type == INT) {
         printf("\tli $v0,1\n");

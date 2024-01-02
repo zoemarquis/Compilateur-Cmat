@@ -1,0 +1,26 @@
+int main(){
+    matrix Anne[3] = {1,2,3};
+
+    float f;
+    f = Anne[0];
+    print(f);
+    printf("\n");
+    
+    matrix Bob[3];
+    Bob = Anne + Anne[2];
+    printmat(Bob);
+
+    matrix C[2][3] = {{1,2,7},{3,4,8}};
+
+    float g;
+    g = C[1][0];
+    print(g);
+    printf("\n");
+   
+    matrix Celine[2][3];
+    Celine = Anne[*;*][*] + C[0][0];
+    printmat(Celine);
+
+    Celine = Celine + C[1][2];
+    printmat(Celine);
+}

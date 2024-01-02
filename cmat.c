@@ -2,6 +2,8 @@
 
 #include "EXPR.tab.h"
 
+extern int yylex_destroy();
+
 SymTable* SYMTAB;
 Code* CODE;
 
@@ -50,6 +52,12 @@ int main() {
       printf("%s: .word %d\n", s.name, s.const_int);
     } else if (s.kind == CONST_FLOAT) {
       printf("%s: .float %f\n", s.name, s.const_float);
+    } else if (s.kind == EXTRACT) {
+      printf("%s: .word ", s.name);
+      for (unsigned i = 0; i < s.extr.taille; i++) {
+        printf("%d ", s.extr.liste[i]);
+      }
+      printf("\n");
     }
   }
   code_dump(CODE);

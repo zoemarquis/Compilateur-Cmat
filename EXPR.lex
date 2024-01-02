@@ -14,7 +14,7 @@ INT 0|[1-9]{DIGIT}*
 FLOAT {INT}?\.{DIGIT}*|{INT}?(\.{DIGIT}*)?[eE][\-\+]?{INT}
 COMMENT \/\*([^\*]|\*+[^\/])*\*\/
 SINGLECOMMENT \/\/.*
-STRING \"([^\"\\]|(\\\.))*\"
+STRING \"([^"])*\"
 
 %%
 "main"                                      { return MAIN;}

@@ -10,6 +10,8 @@
 unsigned string_num = 1;
 unsigned const_int_num = 1;
 unsigned const_float_num = 1;
+unsigned extract_num = 1;
+unsigned indices_num = 1;
 
 SymTable *symtable_new() {
   SymTable *t = malloc(sizeof(SymTable));
@@ -79,6 +81,28 @@ Symbol *symtable_string(SymTable *t, const char *string) {
   return s;
 }
 
+Symbol *symtable_extract(SymTable *t, Extract extract) {
+  if (t->size == t->capacity) symtable_grow(t);
+  Symbol *s = &(t->symbols[t->size]);
+  s->kind = EXTRACT;
+  sprintf(s->name, "%s%d", "extr", extract_num);
+  extract_num++;
+  s->extr = extract;
+  ++(t->size);
+  return s;
+}
+
+Symbol *symtable_indices(SymTable *t, Indices tuple) {
+  if (t->size == t->capacity) symtable_grow(t);
+  Symbol *s = &(t->symbols[t->size]);
+  s->kind = INDICES;
+  sprintf(s->name, "%s%d", "ind", indices_num);
+  indices_num++;
+  s->tuple = tuple;
+  ++(t->size);
+  return s;
+}
+
 Symbol *symtable_get(SymTable *t, const char *id) {
   unsigned int i;
   for (i = 0; i < t->size && strcmp(t->symbols[i].name, id) != 0; i++)
@@ -117,6 +141,8 @@ void symtable_free(SymTable *t) {
       delete_var(t->symbols[i].var);
     } else if (t->symbols[i].kind == STRING) {
       free(t->symbols[i].string);
+    } else if (t->symbols[i].kind == EXTRACT) {
+      free(t->symbols[i].extr.liste);
     }
   }
   free(t->symbols);
@@ -172,21 +198,6 @@ void printmat(Matrix *matrix) {
   }
 }
 
-#if 0
-Matrix* extraction(Matrix* a, int* lignes, int* colonnes, int n, int m) {
-  Matrix* mnew = create_matrix(n, m);
-  int k = 0;
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < m; j++) {
-      int l = lignes[i];
-      int c = colonnes[j];
-      mnew->data[k++] = a->data[l * a->c + c];
-    }
-  }
-  return mnew;
-}
-#endif
-
 void delete_matrix(Matrix *matrix) {
   free(matrix->data);
   free(matrix);
@@ -214,27 +225,44 @@ void add_ligne(Matrix *m, Matrix *m2) {
   delete_matrix(m2);
 }
 
-/*
-int *creer_liste_extract(int valeur) {
-  int *v = (int *)malloc(sizeof(int));
-  *v = valeur;
-  return v;
+// extraction
+
+Matrix *extraction(Matrix *a, int *lignes, int *colonnes, int n, int m) {
+  Matrix *mnew = create_matrix(n, m);
+  int k = 0;
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < m; j++) {
+      int l = lignes[i];
+      int c = colonnes[j];
+      mnew->data[k++] = a->data[l * a->c + c];
+    }
+  }
+  return mnew;
 }
 
-int *creer_liste_extract_intervalle(int vmin, int vmax) {
+Extract creer_liste_extract(int valeur) {
+  int *v = (int *)malloc(sizeof(int));
+  *v = valeur;
+  return (Extract){v, 1};
+}
+
+Extract creer_liste_extract_intervalle(int vmin, int vmax) {
   int *l = (int *)malloc(sizeof(int) * (vmax - vmin + 1));
   for (int i = 0; i < (vmax - vmin + 1); i++) {
     l[i] = vmin + i;
   }
-  return l;
+  return (Extract){l, vmax - vmin + 1};
 }
 
-int *concat_extract_liste(int *liste1, int *liste2) {
-  liste1 = (int *)realloc(liste1, sizeof(liste1) + sizeof(liste2));
-  for (int i = 0; i < sizeof(liste2) / sizeof(int); i++) {
-    liste1[sizeof(liste1) / sizeof(int) + i] = liste2[i];
+Extract concat_extract_liste(Extract e1, Extract e2) {
+  int *l = (int *)malloc(sizeof(int) * (e1.taille + e2.taille));
+  for (unsigned i = 0; i < e1.taille; i++) {
+    l[i] = e1.liste[i];
   }
-  free(liste2);
-  return liste1;
+  for (unsigned i = 0; i < e2.taille; i++) {
+    l[i + e1.taille] = e2.liste[i];
+  }
+  free(e1.liste);
+  free(e2.liste);
+  return (Extract){l, e1.taille + e2.taille};
 }
-*/

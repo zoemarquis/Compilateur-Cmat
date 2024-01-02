@@ -10,9 +10,12 @@ typedef struct _quad {
     BOP_MULT,
     UOP_MINUS,
     COPY,
+    EXTR_LIGNE,
+    EXTR_COLONNE,
     CALL_PRINT,
     CALL_PRINTMAT,
-    CALL_PRINTF
+    CALL_PRINTF,
+    GET_ELEMENT
   } kind;
   Symbol *sym1;
   Symbol *sym2;

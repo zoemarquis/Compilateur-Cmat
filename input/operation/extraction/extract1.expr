@@ -1,0 +1,6 @@
+int main(){
+    matrix Anne[3] = {1,2,0};
+    matrix Bob[7];
+    Bob = Anne[*;1;2;0;1];
+    printmat(Bob);
+}

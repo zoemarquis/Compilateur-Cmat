@@ -31,14 +31,26 @@ typedef struct _liste_var {
   unsigned taille;
 } Liste_Variable;
 
+typedef struct _extract {
+  int *liste;
+  unsigned int taille;
+} Extract;
+
+typedef struct _tuple {
+  int ligne;
+  int colonne;
+} Indices;
+
 typedef struct _symbol {
-  enum { NAME, CONST_INT, CONST_FLOAT, STRING } kind;
+  enum { NAME, CONST_INT, CONST_FLOAT, STRING, EXTRACT, INDICES } kind;
   name_t name;
   union {
     variable *var;
     char *string;
     int const_int;
     float const_float;
+    Extract extr;
+    Indices tuple;
   };
 } Symbol;
 
@@ -55,13 +67,17 @@ Symbol *symtable_const_int(SymTable *t, int v);
 
 Symbol *symtable_const_float(SymTable *t, float v);
 
+Symbol *symtable_string(SymTable *t, const char *string);
+
+Symbol *symtable_extract(SymTable *t, Extract extract);
+
+Symbol *symtable_indices(SymTable *t, Indices tuple);
+
 Symbol *symtable_get(SymTable *t, const char *s);
 
 Symbol *symtable_put(SymTable *t, const char *id, variable *var);
 
 void symtable_dump(SymTable *t);
-
-Symbol *symtable_string(SymTable *t, const char *string);
 
 void symtable_free(SymTable *t);
 
@@ -84,5 +100,11 @@ void put_value_at(Matrix *m, unsigned ligne, unsigned colonne, float valeur);
 void add_colonne(Matrix *m);
 
 void add_ligne(Matrix *m, Matrix *m2);
+
+Extract creer_liste_extract(int valeur);
+
+Extract creer_liste_extract_intervalle(int vmin, int vmax);
+
+Extract concat_extract_liste(Extract e1, Extract e2);
 
 #endif
