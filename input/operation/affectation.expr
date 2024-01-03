@@ -1,3 +1,0 @@
-int main(){
-    matrix A[2] = {1,2};
-}

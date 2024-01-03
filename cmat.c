@@ -1,5 +1,8 @@
 #include "cmat.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "EXPR.tab.h"
 
 extern int yylex_destroy();

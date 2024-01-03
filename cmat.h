@@ -1,8 +1,7 @@
 #ifndef EXPRC_H
 #define EXPRC_H
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <assert.h>
 
 #include "generation.h"
 #include "symbtab.h"

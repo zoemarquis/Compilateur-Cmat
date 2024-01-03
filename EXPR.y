@@ -1,27 +1,28 @@
 
 %{
+  #include "cmat.h"
+  #include "symbtab.h"
+  #include <stdio.h>
+  #include <stdlib.h>
 
-#include "cmat.h"
-#include "symbtab.h"
-
-extern void yyerror(const char * s);
-extern int yylex();
+  extern void yyerror(const char * s);
+  extern int yylex();
 %}
 
 %union {
-    long int intval;
-    float floatval;
-    name_t strval;
-    struct {
-        Symbol * ptr;
-    } exprval;
-    Symbol * variable;
-    unsigned type;
-    Liste_Variable l_var;
-    variable * var;
-    Matrix* matrix;
-    char * string;
-    Extract liste_extract;
+  int intval;
+  float floatval;
+  name_t strval;
+  struct {
+      Symbol * ptr;
+  } exprval;
+  Symbol * variable;
+  unsigned type;
+  Liste_Variable l_var;
+  variable * var;
+  Matrix* matrix;
+  char * string;
+  Extract liste_extract;
 }
 
 %token DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT STATIC CONST IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE
@@ -126,7 +127,139 @@ affectation
       
       gencode(CODE,COPY,id,$3.ptr,NULL);
     }
+  
+  | ID LBRACKET V_INT RBRACKET ASSIGN expr
+    {
+      // sémantique : vérifier que l'id existe
+      Symbol * id = symtable_get(SYMTAB,$1);
+      if ( id == NULL ){
+        fprintf(stderr,"La variable '%s' n'a jamais été déclarée.\n",$1);
+        exit(1);
+      }
+
+      unsigned type1, type2;
+
+      assert(id->kind == NAME);
+      type1 = id->var->type;
+
+      switch($6.ptr->kind){
+        case(NAME):
+          type2 = $6.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Erreur de type.\n");
+          exit(1);
+          break;
+      }
+
+      // vérifier qu'il s'agit d'une matrice
+      if (type1 != MATRIX){
+        fprintf(stderr,"%s n'est pas une matrice, on ne peut donc pas accéder à %s[%d].\n",id->name,id->name,$3);
+        exit(1);
+      }
+
+      // vérifier que c'est une matrice à une dimension
+      if (id->var->val.matrix->l != 1){
+        fprintf(stderr,"La matrice %s a deux dimensions : impossible d'affecter quelque chose à %s[%d].\n",id->name,id->name,$3);
+        exit(1);
+      }
+
+      // vérifier que 0 <= $3 < taille colonne
+      if (id->var->val.matrix->c <= $3){
+        fprintf(stderr,"La matrice %s a %d colonnes : %s[%d] out of range.\n",id->name,id->var->val.matrix->c,id->name,$3);
+        exit(1);
+      }
+
+      // vérifier que le type de l'expr est compatible avec le type de ID
+      if (type2 == MATRIX) {
+        fprintf(stderr,"Incompatibilité de types.\n");
+        exit(1);
+      }
+      assert(type2 == INT || type2 == FLOAT);
+
+      // marquer que la variable est initialisée
+      id->var->init = true;
+      
+      // aller modifier une case d'une matrice id
+      // lui mettre la valeur de $6
+      // aux coordonnées $3
+      Symbol * t = symtable_indices(SYMTAB,(Indices){0,$3});
+      gencode(CODE,PUT_ELEMENT,id,$6.ptr,t);
+    }
+  
+  | ID LBRACKET V_INT RBRACKET LBRACKET V_INT RBRACKET ASSIGN expr
+    {
+      // sémantique : vérifier que l'id existe
+      Symbol * id = symtable_get(SYMTAB,$1);
+      if ( id == NULL ){
+        fprintf(stderr,"La variable '%s' n'a jamais été déclarée.\n",$1);
+        exit(1);
+      }
+
+      unsigned type1, type2;
+
+      assert(id->kind == NAME);
+      type1 = id->var->type;
+
+      switch($9.ptr->kind){
+        case(NAME):
+          type2 = $9.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Erreur de type.\n");
+          exit(1);
+          break;
+      }
+
+      // vérifier qu'il s'agit d'une matrice
+      if (type1 != MATRIX){
+        fprintf(stderr,"%s n'est pas une matrice, on ne peut donc pas accéder à %s[%d].\n",id->name,id->name,$3);
+        exit(1);
+      }
+
+      // vérifier que 0 <= $3 < taille ligne
+      if (id->var->val.matrix->l <= $3){
+        fprintf(stderr,"La matrice %s a %d lignes : %s[%d][%d] out of range.\n",id->name,id->var->val.matrix->l,id->name,$3,$6);
+        exit(1);
+      }
+
+      // vérifier que 0 <= $6 < taille colonne
+      if (id->var->val.matrix->c <= $6){
+        fprintf(stderr,"La matrice %s a %d colonnes : %s[%d][%d] out of range.\n",id->name,id->var->val.matrix->c,id->name,$3,$6);
+        exit(1);
+      }
+
+      // vérifier que le type de l'expr est compatible avec le type de ID
+      if (type2 == MATRIX) {
+        fprintf(stderr,"Incompatibilité de types.\n");
+        exit(1);
+      }
+      assert(type2 == INT || type2 == FLOAT);
+
+      // marquer que la variable est initialisée
+      id->var->init = true;
+      
+      // aller modifier une case d'une matrice id
+      // lui mettre la valeur de $9
+      // aux coordonnées $3 $6
+      Symbol * t = symtable_indices(SYMTAB,(Indices){$3,$6});
+      gencode(CODE,PUT_ELEMENT,id,$9.ptr,t);
+    }
+  
   ;
+
 
 declaration_variable
   : type_var liste_var {
@@ -330,7 +463,7 @@ afficher
   ;
 
 expr
-: expr PLUS expr
+  : expr PLUS expr
   { 
     // vérifier compatibilité de type
 
@@ -415,9 +548,13 @@ expr
 | ID
   { 
     Symbol * id = symtable_get(SYMTAB,$1);
-    if ( id == NULL ){
+    if (id==NULL){
         fprintf(stderr,"La variable '%s' n'a jamais été déclarée.\n",$1);
         exit(1);
+    }
+    if (!id->var->init){
+      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans le membre droit d'une affectation.\n",$1);
+      exit(1);
     }
     $$.ptr = id;
   }
@@ -437,6 +574,11 @@ expr
     Symbol * id = symtable_get(SYMTAB,$1);
     if (id == NULL){
       fprintf(stderr,"La variable '%s' n'a jamais été déclarée.\n",$1);
+      exit(1);
+    }
+
+    if (!id->var->init){
+      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans le membre droit d'une affectation.\n",$1);
       exit(1);
     }
 
@@ -502,12 +644,15 @@ expr
   }
 | ID LBRACKET extraction RBRACKET LBRACKET extraction RBRACKET // matrice deux dimensions
   {
-    // TODO : si les 2 trucs de taille 1 -> c'est un float 
-
     // 1. vérifier que ID est déclarée
     Symbol * id = symtable_get(SYMTAB,$1);
     if (id == NULL){
       fprintf(stderr,"La variable '%s' n'a jamais été déclarée.\n",$1);
+      exit(1);
+    }
+
+    if (!id->var->init){
+      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans le membre droit d'une affectation.\n",$1);
       exit(1);
     }
 
@@ -574,6 +719,7 @@ expr
       $$.ptr = newtemp(SYMTAB, FLOAT, val);
       Symbol * t = symtable_indices(SYMTAB,(Indices){l[0],c[0]});
       gencode(CODE,GET_ELEMENT,$$.ptr,id,t);
+      free(l);
       free(c);
     } else {
       Symbol * ligne = symtable_extract(SYMTAB,(Extract){l,l_taille});

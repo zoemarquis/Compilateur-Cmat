@@ -1,0 +1,24 @@
+int main(){
+    matrix A[2][2] = {{1,2},{5,8}};
+
+    /* erreur
+    A[0] = 3;
+    */
+
+    /* erreur
+    A[2][0] = 3;  
+    */
+
+    /* erreur
+    A[0][2] = 3;  
+    */
+
+    A[0][1] = 4;
+    printmat(A);
+
+    A[1][1] = 8.5;
+    printmat(A);
+
+    A[0][0] = A[0][0] + A[1][1];
+    printmat(A);
+}

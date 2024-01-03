@@ -15,7 +15,8 @@ typedef struct _quad {
     CALL_PRINT,
     CALL_PRINTMAT,
     CALL_PRINTF,
-    GET_ELEMENT
+    GET_ELEMENT,
+    PUT_ELEMENT
   } kind;
   Symbol *sym1;
   Symbol *sym2;

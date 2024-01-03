@@ -448,6 +448,36 @@ static void quad_dump(Quad *q) {
 
       printf("\tl.s $f0, 0($a0)\n");
       printf("\ts.s $f0, %s\n", q->sym1->name);
+      break;
+
+    case PUT_ELEMENT:
+      printf("\tli $t0, %d\n", q->sym3->tuple.ligne);
+      printf("\tli $t1, %d\n", q->sym3->tuple.colonne);
+
+      printf("\tlw $t2, %s_cols\n", q->sym1->name);
+
+      printf("\tmul $t3, $t0, $t2\n");
+      printf("\tadd $t3, $t3, $t1\n");
+      printf("\tsll $t3, $t3, 2\n");
+
+      printf("\tla $a0, %s\n", q->sym1->name);
+      printf("\tadd $a0, $a0, $t3\n");
+
+      if (q->sym2->kind == CONST_INT ||
+          (q->sym2->kind == NAME && q->sym2->var->type == INT)) {
+        printf("\tlw $t4, %s\n", q->sym2->name);
+        printf("\tmtc1 $t4, $f0\n");
+        printf("\tcvt.s.w $f0, $f0\n");
+      }  // int
+      else if ((q->sym2->kind == CONST_FLOAT) ||
+               (q->sym2->kind == NAME && q->sym2->var->type == FLOAT)) {
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+      }  // float
+      else {
+        fprintf(stderr, "something went wrong\n");
+        exit(1);
+      }
+      printf("\ts.s $f0, 0($a0)\n");
 
       break;
 
