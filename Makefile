@@ -4,10 +4,10 @@ CFLAGS=-g -fcommon
 
 all: cmat
 
-cmat: cmat.c EXPR.tab.o lex.yy.o symbtab.o generation.o
+cmat: cmat.c EXPR.tab.o lex.yy.o matrix.o symbtab.o generation.o
 	${CC} -o $@ $^
 
-EXPR.tab.o: EXPR.tab.c symbtab.h generation.h
+EXPR.tab.o: EXPR.tab.c error.h matrix.h symbtab.h generation.h
 
 EXPR.tab.c: EXPR.y
 	bison -d $<
@@ -17,12 +17,20 @@ lex.yy.o: lex.yy.c
 lex.yy.c: EXPR.lex EXPR.tab.c
 	flex EXPR.lex
 
+matrix.o: CFLAGS+=-Wall -Wextra
+matrix.o: matrix.c matrix.h error.h
+	${CC} ${CFLAGS} -c $< -o $@
+
+# variable.o: CFLAGS+=-Wall -Wextra
+# variable.o: variable.c variable.h matrix.h symbtab.h error.h
+# 	${CC} ${CFLAGS} -c $< -o $@
+
 symbtab.o: CFLAGS+=-Wall -Wextra
-symbtab.o: symbtab.c symbtab.h
+symbtab.o: symbtab.c symbtab.h matrix.h error.h
 	${CC} ${CFLAGS} -c $< -o $@
 
 generation.o: CFLAGS+=-Wall -Wextra 
-generation.o: generation.c generation.h symbtab.h 
+generation.o: generation.c generation.h symbtab.h error.h
 	${CC} ${CFLAGS} -c $< -o $@
 
 clean:

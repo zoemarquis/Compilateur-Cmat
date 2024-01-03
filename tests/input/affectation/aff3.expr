@@ -1,9 +1,7 @@
 int main(){
     matrix A[2][2] = {{1,2},{5,8}};
 
-    /* erreur
     A[0] = 3;
-    */
 
     /* erreur
     A[2][0] = 3;  

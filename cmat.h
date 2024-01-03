@@ -1,5 +1,5 @@
-#ifndef EXPRC_H
-#define EXPRC_H
+#ifndef CMAT_H
+#define CMAT_H
 
 #include <assert.h>
 

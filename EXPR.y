@@ -1,9 +1,10 @@
 
 %{
-  #include "cmat.h"
+  #include "cmat.h" // pas besoin ?
+  #include "error.h"
   #include "symbtab.h"
-  #include <stdio.h>
-  #include <stdlib.h>
+  #include <stdio.h>// ?
+  #include <stdlib.h>// ?
 
   extern void yyerror(const char * s);
   extern int yylex();
@@ -607,12 +608,20 @@ expr
 
       // pour tous les -1, remplacer par la dimension de ID
       int *c = (int *) malloc(sizeof(int)* $3.taille);
+      if (c == NULL) { // Échec de l'allocation, gérer l'erreur
+        fprintf(stderr,"Allocation mémoire échouée\n");
+        exit(MEMORY_FAILURE);
+      }
       int c_taille = 0;
       int tmp = $3.taille; // pour réallouer la bonne taille
       for (int i = 0; i < $3.taille; i++){
         if ($3.liste[i]==-1){
           tmp += id->var->val.matrix->c;
           c = (int *)realloc(c, tmp * sizeof(int));
+          if (c == NULL) { // Échec de l'allocation, gérer l'erreur
+            fprintf(stderr,"Allocation mémoire échouée\n");
+            exit(MEMORY_FAILURE);
+          }
           for (int k = 0; k < id->var->val.matrix->c; k++){
             c[c_taille] = k;
             c_taille++;
@@ -679,12 +688,20 @@ expr
 
     // pour tous les -1, remplacer par la dimension de ID : ligne
     int *l = (int *) malloc(sizeof(int)* $3.taille);
+    if (l == NULL) { // Échec de l'allocation, gérer l'erreur
+      fprintf(stderr,"Allocation mémoire échouée\n");
+      exit(MEMORY_FAILURE);
+    }
     int l_taille = 0;
     int tmp = $3.taille; // pour réallouer la bonne taille
     for (int i = 0; i < $3.taille; i++){
       if ($3.liste[i]==-1){
         tmp += id->var->val.matrix->l;
         l = (int *)realloc(l, tmp * sizeof(int));
+        if (l == NULL) { // Échec de l'allocation, gérer l'erreur
+          fprintf(stderr,"Allocation mémoire échouée\n");
+          exit(MEMORY_FAILURE);
+        }
         for (int k = 0; k < id->var->val.matrix->l; k++){
           l[l_taille] = k;
           l_taille++;
@@ -697,12 +714,20 @@ expr
 
     // pour tous les -1, remplacer par la dimension de ID : colonne
     int *c = (int *) malloc(sizeof(int)* $6.taille);
+    if (c == NULL) { // Échec de l'allocation, gérer l'erreur
+      fprintf(stderr,"Allocation mémoire échouée\n");
+      exit(MEMORY_FAILURE);
+    }
     int c_taille = 0;
     tmp = $6.taille;
     for (int i = 0; i < $6.taille; i++){
       if ($6.liste[i]==-1){
         tmp += id->var->val.matrix->c;
         c = (int *)realloc(c, tmp * sizeof(int));
+        if (c == NULL) { // Échec de l'allocation, gérer l'erreur
+          fprintf(stderr,"Allocation mémoire échouée\n");
+          exit(MEMORY_FAILURE);
+        }
         for (int k = 0; k < id->var->val.matrix->c; k++){
           c[c_taille] = k;
           c_taille++;
@@ -771,6 +796,6 @@ retour
 
 void yyerror(const char * s)
 {
-    fprintf(stderr,"%s\n",s);
+  fprintf(stderr,"%s\n",s);
 }
 

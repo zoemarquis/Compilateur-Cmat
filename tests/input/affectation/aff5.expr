@@ -1,0 +1,5 @@
+int main() {
+  matrix A[2][2];
+  A[0][0] = 1;
+  printmat(A);
+}

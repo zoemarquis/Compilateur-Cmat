@@ -5,14 +5,22 @@
 #include <string.h>
 
 #include "EXPR.tab.h"
-#include "cmat.h"
+#include "error.h"
 
 unsigned cpt_label = 0;
 
 Code *code_new() {
   Code *r = malloc(sizeof(Code));
+  if (r == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   r->capacity = 1024;
   r->quads = malloc(r->capacity * sizeof(Quad));
+  if (r->quads == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   r->nextquad = 0;
   return r;
 }
@@ -20,6 +28,10 @@ Code *code_new() {
 static void code_grow(Code *c) {
   c->capacity += 1024;
   c->quads = realloc(c->quads, c->capacity * sizeof(Quad));
+  if (c->quads == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   if (c->quads == NULL) {
     fprintf(stderr,
             "Erreur lors de la tentative d'expansion de la liste des "

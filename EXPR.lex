@@ -2,6 +2,7 @@
     #include "generation.h"
     #include "symbtab.h"
     #include "EXPR.tab.h"
+    #include "error.h"
 %}
 
 %option nounput
@@ -69,6 +70,10 @@ STRING \"([^"])*\"
 {INT}                                       { yylval.intval = atoi(yytext);
                                                 return V_INT;}
 {STRING}                                    { yylval.string = strdup(yytext); 
+                                                if (yylval.string == NULL) { // Échec 
+                                                    fprintf(stderr,"Strdup échoué\n");
+                                                    exit(MEMORY_FAILURE);
+                                                }
                                                 return V_STRING;}
 \r|\n                                       {/*nb_ligne = nb_ligne +1;*/}
 {COMMENT}                                   { /*Ne rien faire*/; }

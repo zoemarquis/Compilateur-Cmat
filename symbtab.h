@@ -3,15 +3,10 @@
 
 #include <stdbool.h>
 
-typedef char name_t[8];
+#include "error.h"
+#include "matrix.h"
 
-typedef struct matrix_ {
-  unsigned l;  // nombre de lignes
-               // si une matrice a 1 dimension alors l = 1 (on a seulement des
-               // colonnes)
-  unsigned c;  // nombre de colonnes
-  float *data;
-} Matrix;
+typedef char name_t[8];
 
 typedef union _valeur {
   int entier;
@@ -81,6 +76,16 @@ void symtable_dump(SymTable *t);
 
 void symtable_free(SymTable *t);
 
+// extraction
+
+Extract creer_liste_extract(int valeur);
+
+Extract creer_liste_extract_intervalle(int vmin, int vmax);
+
+Extract concat_extract_liste(Extract e1, Extract e2);
+
+// variable
+
 variable *creer_variable(name_t name, unsigned type, bool init, valeur val);
 
 variable **creer_var_liste(variable *v1);
@@ -88,23 +93,5 @@ variable **creer_var_liste(variable *v1);
 variable **ajouter_var_liste(variable **liste, unsigned taille, variable *var);
 
 void delete_var(variable *var);
-
-Matrix *create_matrix(unsigned l, unsigned c);
-
-void printmat(Matrix *matrix);
-
-void delete_matrix(Matrix *matrix);
-
-void put_value_at(Matrix *m, unsigned ligne, unsigned colonne, float valeur);
-
-void add_colonne(Matrix *m);
-
-void add_ligne(Matrix *m, Matrix *m2);
-
-Extract creer_liste_extract(int valeur);
-
-Extract creer_liste_extract_intervalle(int vmin, int vmax);
-
-Extract concat_extract_liste(Extract e1, Extract e2);
 
 #endif

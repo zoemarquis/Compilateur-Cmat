@@ -26,7 +26,7 @@ find "$input_dir" -type f -name "*.expr" | while read -r input_file; do
     fi
 done
 
-# pour tout ceux dans right les placer dans un dossier wright
+# pour tout ceux dans right les placer dans un dossier right
 # pour tout ceux dans wrong les placer fans un dossier output/wrong
 
 # les output/wrong doivent lever des erreurs : comparer ecs erreurs aux résultats obtenus

@@ -15,8 +15,16 @@ unsigned indices_num = 1;
 
 SymTable *symtable_new() {
   SymTable *t = malloc(sizeof(SymTable));
+  if (t == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   t->capacity = 1024;
   t->symbols = malloc(t->capacity * sizeof(Symbol));
+  if (t->symbols == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   t->temporary = 0;
   t->size = 0;
   return t;
@@ -25,6 +33,10 @@ SymTable *symtable_new() {
 static void symtable_grow(SymTable *t) {
   t->capacity += 1024;
   t->symbols = realloc(t->symbols, t->capacity * sizeof(Symbol));
+  if (t->symbols == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   if (t->symbols == NULL) {
     fprintf(stderr,
             "Erreur lors de la tentative d'aggreandissement de la table des "
@@ -149,82 +161,6 @@ void symtable_free(SymTable *t) {
   free(t);
 }
 
-// VARIABLE
-
-variable *creer_variable(name_t name, unsigned type, bool init, valeur val) {
-  variable *var = (variable *)malloc(sizeof(variable));
-  strcpy(var->name, name);
-  var->type = type;
-  var->init = init;
-  var->val = val;
-  return var;
-}
-
-variable **creer_var_liste(variable *v1) {
-  variable **liste = (variable **)malloc(sizeof(variable *));
-  liste[0] = v1;
-  return liste;
-}
-
-variable **ajouter_var_liste(variable **liste, unsigned taille, variable *var) {
-  liste = (variable **)realloc(liste, taille * sizeof(variable *));
-  liste[taille - 1] = var;
-  return liste;
-}
-
-void delete_var(variable *var) {
-  if (var->type == MATRIX) {
-    delete_matrix(var->val.matrix);
-  }
-  if (var) free(var);
-}
-
-// MATRIX
-
-Matrix *create_matrix(unsigned l, unsigned c) {
-  Matrix *matrix = (Matrix *)malloc(sizeof(Matrix));
-  matrix->l = l;
-  matrix->c = c;
-  matrix->data = (float *)calloc(l * c, sizeof(float));
-  return matrix;
-}
-
-void printmat(Matrix *matrix) {
-  for (unsigned i = 0; i < matrix->l; i++) {
-    for (unsigned j = 0; j < matrix->c; j++) {
-      printf("%f\t", matrix->data[(i * matrix->c) + j]);
-    }
-    printf("\n");
-  }
-}
-
-void delete_matrix(Matrix *matrix) {
-  free(matrix->data);
-  free(matrix);
-}
-
-void put_value_at(Matrix *m, unsigned ligne, unsigned colonne, float valeur) {
-  assert(ligne < m->l && colonne < m->c);
-  m->data[ligne * m->c + colonne] = valeur;
-}
-
-void add_colonne(Matrix *m) {
-  assert(m->l == 1);
-  m->c++;
-  m->data = (float *)realloc(m->data, m->c * sizeof(float));
-}
-
-void add_ligne(Matrix *m, Matrix *m2) {
-  assert(m->c == m2->c);
-  assert(m2->l == 1);
-  m->l++;
-  m->data = (float *)realloc(m->data, m->l * m->c * sizeof(float));
-  for (unsigned i = 0; i < (m->c); i++) {
-    m->data[(m->l - 1) * (m->c) + i] = m2->data[i];
-  }
-  delete_matrix(m2);
-}
-
 // extraction
 
 Matrix *extraction(Matrix *a, int *lignes, int *colonnes, int n, int m) {
@@ -242,12 +178,20 @@ Matrix *extraction(Matrix *a, int *lignes, int *colonnes, int n, int m) {
 
 Extract creer_liste_extract(int valeur) {
   int *v = (int *)malloc(sizeof(int));
+  if (v == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   *v = valeur;
   return (Extract){v, 1};
 }
 
 Extract creer_liste_extract_intervalle(int vmin, int vmax) {
   int *l = (int *)malloc(sizeof(int) * (vmax - vmin + 1));
+  if (l == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   for (int i = 0; i < (vmax - vmin + 1); i++) {
     l[i] = vmin + i;
   }
@@ -256,6 +200,10 @@ Extract creer_liste_extract_intervalle(int vmin, int vmax) {
 
 Extract concat_extract_liste(Extract e1, Extract e2) {
   int *l = (int *)malloc(sizeof(int) * (e1.taille + e2.taille));
+  if (l == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   for (unsigned i = 0; i < e1.taille; i++) {
     l[i] = e1.liste[i];
   }
@@ -265,4 +213,46 @@ Extract concat_extract_liste(Extract e1, Extract e2) {
   free(e1.liste);
   free(e2.liste);
   return (Extract){l, e1.taille + e2.taille};
+}
+
+// variable
+
+variable *creer_variable(name_t name, unsigned type, bool init, valeur val) {
+  variable *var = (variable *)malloc(sizeof(variable));
+  if (var == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
+  strcpy(var->name, name);
+  var->type = type;
+  var->init = init;
+  var->val = val;
+  return var;
+}
+
+variable **creer_var_liste(variable *v1) {
+  variable **liste = (variable **)malloc(sizeof(variable *));
+  if (liste == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
+  liste[0] = v1;
+  return liste;
+}
+
+variable **ajouter_var_liste(variable **liste, unsigned taille, variable *var) {
+  liste = (variable **)realloc(liste, taille * sizeof(variable *));
+  if (liste == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
+  liste[taille - 1] = var;
+  return liste;
+}
+
+void delete_var(variable *var) {
+  if (var->type == MATRIX) {
+    delete_matrix(var->val.matrix);
+  }
+  if (var) free(var);
 }
