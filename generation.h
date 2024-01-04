@@ -22,6 +22,11 @@ typedef struct _quad {
     B_ET,
     B_NOT,
     B_LT,
+    B_LTOE,
+    B_GT,
+    B_GTOE,
+    B_EQUAL,
+    B_NOT_EQUAL,
     DEBUT_BLOC,
     FIN_BLOC,
 

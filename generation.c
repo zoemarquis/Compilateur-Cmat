@@ -82,6 +82,7 @@ static void symbol_dump(Symbol *s) {
 
 static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
                       Quad *q) {
+  unsigned type1, type2;
   switch (q->kind) {
     case DEBUT_BLOC:
       printf("debut_bloc_%d:\n", cpt_bloc);
@@ -201,9 +202,6 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       break;
 
     case BOP_PLUS:
-
-      unsigned type1, type2;
-
       if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) &&
           (q->sym3->kind == NAME &&
            q->sym3->var->type == MATRIX)) {  // add 2 matrix
@@ -669,10 +667,475 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             */
 
     case B_LT:
-      // si les 2 sont des int
-      printf("\tlw $t0, %s\n", q->sym2->name);
-      printf("\tlw $t1, %s\n", q->sym3->name);
-      printf("\tbge $t0, $t1, false_%d\n", cpt_label);
+      switch (q->sym2->kind) {
+        case (NAME):
+          assert(q->sym2->var->init);
+          type1 = q->sym2->var->type;
+          break;
+        case (CONST_INT):
+          type1 = INT;
+          break;
+        case (CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      switch (q->sym3->kind) {
+        case (NAME):
+          assert(q->sym3->var->init);
+          type2 = q->sym3->var->type;
+          break;
+        case (CONST_INT):
+          type2 = INT;
+          break;
+        case (CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      if (type1 == INT && type2 == INT) {  // si les 2 sont des int
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tbge $t0, $t1, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.lt.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+      } else if (type1 == INT && type2 == FLOAT) {  // int et float
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tmtc1 $t0, $f0\n");
+        printf("\tcvt.s.w $f0, $f0\n");
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.lt.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == INT) {
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tmtc1 $t0, $f1\n");
+        printf("\tcvt.s.w $f1, $f1\n");
+        printf("\tc.lt.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+      } else {
+        fprintf(stderr, "something went wrong\n");
+        exit(1);
+      }
+
+      // cas vrai
+      printf("\tli $t0, 1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tj fin_condi_%d\n", cpt_label);
+
+      // cas faux
+      printf("false_%d:\n", cpt_label);
+      printf("\tli $t0, 0\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+
+      printf("\tfin_condi_%d:\n", cpt_label);
+
+      cpt_label++;
+
+      break;
+
+    case B_LTOE:
+      switch (q->sym2->kind) {
+        case (NAME):
+          assert(q->sym2->var->init);
+          type1 = q->sym2->var->type;
+          break;
+        case (CONST_INT):
+          type1 = INT;
+          break;
+        case (CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      switch (q->sym3->kind) {
+        case (NAME):
+          assert(q->sym3->var->init);
+          type2 = q->sym3->var->type;
+          break;
+        case (CONST_INT):
+          type2 = INT;
+          break;
+        case (CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      if (type1 == INT && type2 == INT) {  // si les 2 sont des int
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tbgt $t0, $t1, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.le.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+      } else if (type1 == INT && type2 == FLOAT) {  // int et float
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tmtc1 $t0, $f0\n");
+        printf("\tcvt.s.w $f0, $f0\n");
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.le.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == INT) {  // float et int
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tmtc1 $t0, $f1\n");
+        printf("\tcvt.s.w $f1, $f1\n");
+        printf("\tc.le.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+      } else {
+        fprintf(stderr, "something went wrong\n");
+        exit(1);
+      }
+
+      // cas vrai
+      printf("\tli $t0, 1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tj fin_condi_%d\n", cpt_label);
+
+      // cas faux
+      printf("false_%d:\n", cpt_label);
+      printf("\tli $t0, 0\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+
+      printf("\tfin_condi_%d:\n", cpt_label);
+
+      cpt_label++;
+
+      break;
+
+    case B_GT:
+      switch (q->sym2->kind) {
+        case (NAME):
+          assert(q->sym2->var->init);
+          type1 = q->sym2->var->type;
+          break;
+        case (CONST_INT):
+          type1 = INT;
+          break;
+        case (CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      switch (q->sym3->kind) {
+        case (NAME):
+          assert(q->sym3->var->init);
+          type2 = q->sym3->var->type;
+          break;
+        case (CONST_INT):
+          type2 = INT;
+          break;
+        case (CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      if (type1 == INT && type2 == INT) {  // si les 2 sont des int
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tble $t0, $t1, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.le.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else if (type1 == INT && type2 == FLOAT) {  // int et float
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tmtc1 $t0, $f0\n");
+        printf("\tcvt.s.w $f0, $f0\n");
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.le.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == INT) {
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tmtc1 $t0, $f1\n");
+        printf("\tcvt.s.w $f1, $f1\n");
+        printf("\tc.le.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else {
+        fprintf(stderr, "something went wrong\n");
+        exit(1);
+      }
+
+      // cas vrai
+      printf("\tli $t0, 1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tj fin_condi_%d\n", cpt_label);
+
+      // cas faux
+      printf("false_%d:\n", cpt_label);
+      printf("\tli $t0, 0\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+
+      printf("\tfin_condi_%d:\n", cpt_label);
+
+      cpt_label++;
+
+      break;  // B_GT
+
+    case B_GTOE:
+      switch (q->sym2->kind) {
+        case (NAME):
+          assert(q->sym2->var->init);
+          type1 = q->sym2->var->type;
+          break;
+        case (CONST_INT):
+          type1 = INT;
+          break;
+        case (CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      switch (q->sym3->kind) {
+        case (NAME):
+          assert(q->sym3->var->init);
+          type2 = q->sym3->var->type;
+          break;
+        case (CONST_INT):
+          type2 = INT;
+          break;
+        case (CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      if (type1 == INT && type2 == INT) {  // si les 2 sont des int
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tblt $t0, $t1, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.lt.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else if (type1 == INT && type2 == FLOAT) {  // int et float
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tmtc1 $t0, $f0\n");
+        printf("\tcvt.s.w $f0, $f0\n");
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.lt.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == INT) {
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tmtc1 $t0, $f1\n");
+        printf("\tcvt.s.w $f1, $f1\n");
+        printf("\tc.lt.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else {
+        fprintf(stderr, "something went wrong\n");
+        exit(1);
+      }
+
+      // cas vrai
+      printf("\tli $t0, 1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tj fin_condi_%d\n", cpt_label);
+
+      // cas faux
+      printf("false_%d:\n", cpt_label);
+      printf("\tli $t0, 0\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+
+      printf("\tfin_condi_%d:\n", cpt_label);
+
+      cpt_label++;
+
+      break;
+
+    case B_EQUAL:
+      switch (q->sym2->kind) {
+        case (NAME):
+          assert(q->sym2->var->init);
+          type1 = q->sym2->var->type;
+          break;
+        case (CONST_INT):
+          type1 = INT;
+          break;
+        case (CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      switch (q->sym3->kind) {
+        case (NAME):
+          assert(q->sym3->var->init);
+          type2 = q->sym3->var->type;
+          break;
+        case (CONST_INT):
+          type2 = INT;
+          break;
+        case (CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      if (type1 == INT && type2 == INT) {  // si les 2 sont des int
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tbne $t0, $t1, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.eq.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+      } else if (type1 == INT && type2 == FLOAT) {  // int et float
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tmtc1 $t0, $f0\n");
+        printf("\tcvt.s.w $f0, $f0\n");
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.eq.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+        // !
+      } else if (type1 == FLOAT && type2 == INT) {
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tmtc1 $t0, $f1\n");
+        printf("\tcvt.s.w $f1, $f1\n");
+        printf("\tc.eq.s $f0, $f1\n");
+        printf("\tbc1f, false_%d\n", cpt_label);
+      } else {
+        fprintf(stderr, "something went wrong\n");
+        exit(1);
+      }
+
+      // cas vrai
+      printf("\tli $t0, 1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tj fin_condi_%d\n", cpt_label);
+
+      // cas faux
+      printf("false_%d:\n", cpt_label);
+      printf("\tli $t0, 0\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+
+      printf("\tfin_condi_%d:\n", cpt_label);
+
+      cpt_label++;
+
+      break;
+
+    case B_NOT_EQUAL:
+      switch (q->sym2->kind) {
+        case (NAME):
+          assert(q->sym2->var->init);
+          type1 = q->sym2->var->type;
+          break;
+        case (CONST_INT):
+          type1 = INT;
+          break;
+        case (CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      switch (q->sym3->kind) {
+        case (NAME):
+          assert(q->sym3->var->init);
+          type2 = q->sym3->var->type;
+          break;
+        case (CONST_INT):
+          type2 = INT;
+          break;
+        case (CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,
+                  "Une expression booléenne ne manipule que des expressions "
+                  "correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+      if (type1 == INT && type2 == INT) {  // si les 2 sont des int
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tbeq $t0, $t1, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.eq.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else if (type1 == INT && type2 == FLOAT) {  // int et float
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tmtc1 $t0, $f0\n");
+        printf("\tcvt.s.w $f0, $f0\n");
+        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tc.eq.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else if (type1 == FLOAT && type2 == INT) {
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tmtc1 $t0, $f1\n");
+        printf("\tcvt.s.w $f1, $f1\n");
+        printf("\tc.eq.s $f0, $f1\n");
+        printf("\tbc1t, false_%d\n", cpt_label);
+      } else {
+        fprintf(stderr, "something went wrong\n");
+        exit(1);
+      }
 
       // cas vrai
       printf("\tli $t0, 1\n");

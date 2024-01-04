@@ -930,6 +930,272 @@ expr_bool
 
     
     }
+  | expr LTOE expr 
+    {
+    unsigned type1, type2;
+
+    switch($1.ptr->kind){
+      case(NAME):
+        assert($1.ptr->var->init);
+        type1 = $1.ptr->var->type;
+        break;
+      case(CONST_INT):
+        type1 = INT;
+        break;
+      case(CONST_FLOAT):
+        type1 = FLOAT;
+        break;
+      default:
+        fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+        break;
+    }
+
+    switch($3.ptr->kind){
+      case(NAME):
+        assert($3.ptr->var->init);
+        type2 = $3.ptr->var->type;
+        break;
+      case(CONST_INT):
+        type2 = INT;
+        break;
+      case(CONST_FLOAT):
+        type2 = FLOAT;
+        break;
+      default:
+        fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+        break;
+      }
+
+    if ((type1==INT || type1==FLOAT) && (type1==INT || type1==FLOAT)) {
+      valeur val;
+      $$.ptr = newtemp(SYMTAB, INT, val);
+      gencode(CODE,B_LTOE,$$.ptr,$1.ptr,$3.ptr);
+      /*
+      $$.true = crelist(CODE->nextquad);
+      gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
+      $$.false = crelist(CODE->nextquad);
+      gencode(CODE,GOTO,NULL,NULL,NULL);
+      */
+    } else {
+      fprintf(stderr, "Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+      exit(1);
+    }    
+    }
+
+  | expr GREATER_THAN expr 
+    {
+      unsigned type1, type2;
+
+      switch($1.ptr->kind){
+        case(NAME):
+          assert($1.ptr->var->init);
+          type1 = $1.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+
+      switch($3.ptr->kind){
+        case(NAME):
+          assert($3.ptr->var->init);
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+        }
+
+      if ((type1==INT || type1==FLOAT) && (type1==INT || type1==FLOAT)) {
+        valeur val;
+        $$.ptr = newtemp(SYMTAB, INT, val);
+        gencode(CODE,B_GT,$$.ptr,$1.ptr,$3.ptr);
+        /*
+        $$.true = crelist(CODE->nextquad);
+        gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
+        $$.false = crelist(CODE->nextquad);
+        gencode(CODE,GOTO,NULL,NULL,NULL);
+        */
+      } else {
+        fprintf(stderr, "Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+      }
+    }
+  | expr GTOE expr 
+    {
+      unsigned type1, type2;
+
+      switch($1.ptr->kind){
+        case(NAME):
+          assert($1.ptr->var->init);
+          type1 = $1.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+
+      switch($3.ptr->kind){
+        case(NAME):
+          assert($3.ptr->var->init);
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+        }
+
+      if ((type1==INT || type1==FLOAT) && (type1==INT || type1==FLOAT)) {
+        valeur val;
+        $$.ptr = newtemp(SYMTAB, INT, val);
+        gencode(CODE,B_GTOE,$$.ptr,$1.ptr,$3.ptr);
+        /*
+        $$.true = crelist(CODE->nextquad);
+        gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
+        $$.false = crelist(CODE->nextquad);
+        gencode(CODE,GOTO,NULL,NULL,NULL);
+        */
+      } else {
+        fprintf(stderr, "Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+      }
+    }
+  | expr EQUAL expr 
+    {
+      unsigned type1, type2;
+
+      switch($1.ptr->kind){
+        case(NAME):
+          assert($1.ptr->var->init);
+          type1 = $1.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+
+      switch($3.ptr->kind){
+        case(NAME):
+          assert($3.ptr->var->init);
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+        }
+
+      if ((type1==INT || type1==FLOAT) && (type1==INT || type1==FLOAT)) {
+        valeur val;
+        $$.ptr = newtemp(SYMTAB, INT, val);
+        gencode(CODE,B_EQUAL,$$.ptr,$1.ptr,$3.ptr);
+        /*
+        $$.true = crelist(CODE->nextquad);
+        gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
+        $$.false = crelist(CODE->nextquad);
+        gencode(CODE,GOTO,NULL,NULL,NULL);
+        */
+      } else {
+        fprintf(stderr, "Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+      }
+    }
+  | expr NOT_EQUAL expr 
+    {
+      unsigned type1, type2;
+
+      switch($1.ptr->kind){
+        case(NAME):
+          assert($1.ptr->var->init);
+          type1 = $1.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+      }
+
+      switch($3.ptr->kind){
+        case(NAME):
+          assert($3.ptr->var->init);
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+          exit(1);
+          break;
+        }
+
+      if ((type1==INT || type1==FLOAT) && (type1==INT || type1==FLOAT)) {
+        valeur val;
+        $$.ptr = newtemp(SYMTAB, INT, val);
+        gencode(CODE,B_NOT_EQUAL,$$.ptr,$1.ptr,$3.ptr);
+        /*
+        $$.true = crelist(CODE->nextquad);
+        gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
+        $$.false = crelist(CODE->nextquad);
+        gencode(CODE,GOTO,NULL,NULL,NULL);
+        */
+      } else {
+        fprintf(stderr, "Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+      }
+    }
   ;
 
 

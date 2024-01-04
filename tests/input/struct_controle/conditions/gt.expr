@@ -1,0 +1,88 @@
+int main() {
+  printf("int i = 1, j = 2; \nfloat a = 0, c = 1, k = 2.5;\n");
+
+  float a = 0;
+  float c = 1;
+  float k = 2.5;
+  int var_i = 1;
+  int var_j = 2;
+
+  printf("comparaison entre 2 int\n");
+
+  if (var_i > var_j) {
+    printf("i > j = vrai\n");
+  } else {
+    printf("i > j = faux\n");
+  }
+
+  if (var_j > var_i) {
+    printf("j > i = vrai\n");
+  } else {
+    printf("j > i = faux\n");
+  }
+
+  if (var_i > var_i) {
+    printf("i > i = vrai\n");
+  } else {
+    printf("i > i = faux\n");
+  }
+
+  printf("\ncomparaison entre 2 float\n");
+
+  if (a > c) {
+    printf("a > c = vrai\n");
+  } else {
+    printf("a > c = faux\n");
+  }
+
+  if (a > a) {
+    printf("a > a = vrai\n");
+  } else {
+    printf("a > a = faux\n");
+  }
+
+  if (c > a) {
+    printf("c > a = vrai\n");
+  } else {
+    printf("c > a = faux\n");
+  }
+
+  printf("\ncomparaison entre 1 int et 1 float\n");
+  if (var_i > a) {
+    printf("i > a = vrai\n");
+  } else {
+    printf("i > a = faux\n");
+  }
+
+  if (var_i > c) {
+    printf("i > c = vrai\n");
+  } else {
+    printf("i > c = faux\n");
+  }
+
+  if (var_i > k) {
+    printf("i > k = vrai\n");
+  } else {
+    printf("i > k = faux\n");
+  }
+
+  printf("\ncomparaison entre 1 float et 1 int\n");
+
+  if (a > var_i) {
+    printf("a > i = vrai\n");
+  } else {
+    printf("a > i = faux\n");
+  }
+
+  if (c > var_i) {
+    printf("c > i = vrai\n");
+  } else {
+    printf("c > i = faux\n");
+  }
+
+  if (k > var_i) {
+    printf("k > i = vrai\n");
+  } else {
+    printf("k > i = faux\n");
+  }
+}

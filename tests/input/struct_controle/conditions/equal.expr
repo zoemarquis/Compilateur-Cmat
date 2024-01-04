@@ -1,0 +1,68 @@
+int main(){
+
+    printf("int i = 1, j = 2; \nfloat a = 0, c = 1, k = 2.5;\n");
+
+    float zero_zero = 0;
+    float un_zero = 1;
+    float deux_cinq = 2.5;
+    float Deux_Cinq = 2.5;
+    int un = 1;
+    int deux = 2;
+    int Un = 1;
+
+    printf("égalité entre 2 int\n");
+
+    if (un == deux){
+        printf("un == deux = vrai\n");
+    } else {
+         printf("un == deux = faux\n");
+    }
+    
+    if (un == Un){
+        printf("un == un = vrai\n");
+    } else {
+         printf("un == un = faux\n");
+    }
+
+    printf("\négalité entre 2 float\n");
+
+    if (deux_cinq == un_zero){
+        printf("deux_cinq == un_zero = vrai\n");
+    } else {
+        printf("deux_cinq == un_zero = faux\n");
+    }
+
+    if (deux_cinq == Deux_Cinq){
+        printf("deux_cinq == deux_cinq = vrai\n");
+    } else {
+        printf("deux_cinq == deux_cinq = faux\n");
+    }
+
+    printf("\négalité entre 1 int et 1 float\n");
+    if (un == deux_cinq){
+        printf("un == deux_cinq = vrai\n");
+    } else {
+        printf("un == deux_cinq = faux\n");
+    }
+
+    if (un == un_zero){
+        printf("un == un_zero = vrai\n");
+    } else {
+        printf("un == un_zero = faux\n");
+    }
+
+    printf("\négalité entre 1 float et 1 int\n");
+
+     if (deux_cinq == un){
+        printf("deux_cinq == un = vrai\n");
+    } else {
+        printf("deux_cinq == un = faux\n");
+    }
+    
+    if (un_zero == un){
+        printf("un_zero == un = vrai\n");
+    } else {
+        printf("un_zero == un = faux\n");
+    }
+
+}
