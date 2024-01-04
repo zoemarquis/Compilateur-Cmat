@@ -1,0 +1,18 @@
+int main(){
+    if (3){
+        printf("faux\n");
+        if (0){
+            printf("coucou\n");
+            if (2){
+                printf("test\n");
+            }
+            if (0){
+                printf("test2\n");
+            }
+        }
+    }
+    if (1){
+        printf("truc\n");
+    }
+    printf("dans main \n");
+}

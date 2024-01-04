@@ -1,0 +1,21 @@
+int main(){
+    
+    if (!0){
+        printf("!0 = vrai\n");
+    } else {
+         printf("!0 = faux\n");
+    }
+
+    if (!2){
+        printf("!2 = vrai\n");
+    } else {
+        printf("!2 = faux\n");
+    }
+
+    if (!1){
+        printf("!1 = vrai\n");
+    } else {
+        printf("!1 = faux\n");
+    }
+    
+}

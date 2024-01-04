@@ -1,0 +1,6 @@
+int main(){
+    if (4.5){
+        printf("faux\n");
+    }
+    printf("dans main \n");
+}

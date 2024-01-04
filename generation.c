@@ -6,8 +6,11 @@
 
 #include "EXPR.tab.h"
 #include "error.h"
+#include "pile.h"
 
 unsigned cpt_label = 0;
+unsigned cpt_bloc = 0;
+unsigned cpt_ctrl = 0;
 
 Code *code_new() {
   Code *r = malloc(sizeof(Code));
@@ -77,8 +80,53 @@ static void symbol_dump(Symbol *s) {
   }
 }
 
-static void quad_dump(Quad *q) {
+static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
+                      Quad *q) {
   switch (q->kind) {
+    case DEBUT_BLOC:
+      printf("debut_bloc_%d:\n", cpt_bloc);
+      push(pile_bloc, cpt_bloc);
+      cpt_bloc++;
+      break;
+
+    case FIN_BLOC:
+      printf("fin_bloc_%d:\n", pop(pile_bloc));
+      break;
+    case DEBUT_IF:
+      printf("debut_if_%d:\n", cpt_ctrl);
+      printf("\tlw $t0, %s\n", q->sym1->name);
+      printf("\tbeqz $t0, fin_bloc_%d\n", cpt_bloc);
+      push(pile_if, cpt_ctrl);
+      cpt_ctrl++;
+      break;
+
+    case JUMP_FIN_IF:
+      printf("j fin_if_%d\n", top(pile_if));
+      break;
+
+    case FIN_IF:
+      printf("fin_if_%d:\n", pop(pile_if));
+      break;
+
+    case DEBUT_WHILE:
+      printf("while_%d:\n", cpt_ctrl);
+      /*
+      printf("\tli $t0, 0\n");
+       printf("\tsw $t0, %s\n", q->sym1->name);
+       */
+      push(pile_while, cpt_ctrl);
+      cpt_ctrl++;
+      break;
+
+    case FIN_WHILE:
+      // printf("\tlw $t0, %s\n", q->sym1->name);
+      printf("\tbeqz $t0, fin_bloc_%d\n", cpt_bloc);
+      break;
+
+    case JUMP_DEBUT_WHILE:
+      printf("j while_%d\n", pop(pile_while));
+      break;
+
     case COPY:
 
       // int = int
@@ -194,7 +242,6 @@ static void quad_dump(Quad *q) {
       } else if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) ||
                  (q->sym3->kind == NAME &&
                   q->sym3->var->type == MATRIX)) {  // mat + cst ou cst + mat
-
         name_t mat;
         name_t cst;
         unsigned type = 0;
@@ -564,6 +611,85 @@ static void quad_dump(Quad *q) {
 
       break;
 
+    // expression booleenne
+    case B_EVAL:
+      // assert type
+      if (q->sym2->kind == CONST_INT ||
+          (q->sym2->kind == NAME && q->sym2->var->type == INT)) {
+        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tbeqz $t0, false_%d\n", cpt_label);
+      } else if ((q->sym2->kind == CONST_FLOAT) ||
+                 (q->sym2->kind == NAME && q->sym2->var->type == FLOAT)) {
+        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tli.s $f1, 0.0\n");
+        printf("\tc.eq.s $f0, $f1\n");
+        printf("\tbc1t false_%d\n", cpt_label);
+      } else {
+        fprintf(stderr, "something went wrong\n");
+        exit(1);
+      }
+
+      printf("\tli $t0, 1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tj fin_condi_%d\n", cpt_label);
+
+      printf("false_%d:\n", cpt_label);
+      printf("\tli $t0, 0\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+
+      printf("\tfin_condi_%d:\n", cpt_label);
+
+      cpt_label++;
+      break;
+
+    case B_OU:
+      printf("\tlw $t0, %s\n", q->sym2->name);
+      printf("\tlw $t1, %s\n", q->sym3->name);
+      printf("\tor $t0, $t0, $t1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      break;
+
+    case B_ET:
+      printf("\tlw $t0, %s\n", q->sym2->name);
+      printf("\tlw $t1, %s\n", q->sym3->name);
+      printf("\tand $t0, $t0, $t1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      break;
+
+    case B_NOT:
+      printf("\tlw $t0, %s\n", q->sym2->name);
+      // printf("\tlw $t1, 1\n");
+      printf("\txori $t0, $t0, 1\n");  // not = xor 1
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      break;
+      /*
+              case LABEL:
+            printf("nextquad_%ld:\n", c->nextquad);
+            break;
+            */
+
+    case B_LT:
+      // si les 2 sont des int
+      printf("\tlw $t0, %s\n", q->sym2->name);
+      printf("\tlw $t1, %s\n", q->sym3->name);
+      printf("\tbge $t0, $t1, false_%d\n", cpt_label);
+
+      // cas vrai
+      printf("\tli $t0, 1\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tj fin_condi_%d\n", cpt_label);
+
+      // cas faux
+      printf("false_%d:\n", cpt_label);
+      printf("\tli $t0, 0\n");
+      printf("\tsw $t0, %s\n", q->sym1->name);
+
+      printf("\tfin_condi_%d:\n", cpt_label);
+
+      cpt_label++;
+
+      break;
+
     default:
       printf("BUG\n");
       break;
@@ -576,9 +702,18 @@ void code_dump(Code *c) {
   printf("\t.text\n");
   printf("main:\n");
 
+  Stack *pile_bloc = createStack(MAX_SIZE);
+  Stack *pile_if = createStack(MAX_SIZE);
+  Stack *pile_while = createStack(MAX_SIZE);
+  // Stack *pile_for = createStack(MAX_SIZE);
+
   for (i = 0; i < c->nextquad; i++) {
-    quad_dump(&(c->quads[i]));
+    quad_dump(pile_bloc, pile_if, pile_while, &(c->quads[i]));
   }
+  freeStack(pile_bloc);
+  freeStack(pile_if);
+  freeStack(pile_while);
+  // freeStack(pile_for);
 
   printf("# exit\n");
   printf("\tli $v0,10\n");
@@ -589,3 +724,33 @@ void code_free(Code *c) {
   free(c->quads);
   free(c);
 }
+
+/*
+Quad_List crelist(Quad *q) {
+  Quad *ql = (Quad *)malloc(sizeof(Quad));
+  ql = q;
+  return (Quad_List){1, ql};
+}
+
+Quad_List concat(Quad_List q1, Quad_List q2) {
+  Quad *ql = (Quad *)malloc(sizeof(Quad) * (q1.taille + q2.taille));
+  if (ql == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
+  for (unsigned i = 0; i < q1.taille; i++) {
+    ql = q1.liste[i];
+  }
+  for (unsigned i = 0; i < q2.taille; i++) {
+    ql = q2.liste[i];
+  }
+  return (Quad_List){q1.taille + q2.taille, ql};
+}
+
+void complete(Quad_List q, unsigned int nextquad) {
+  for (int i = 0; i < q.taille; i++) {
+    // dans le quad y a un attribut qui porte
+    // q->num = nextquad;
+  }
+}
+*/

@@ -3,6 +3,7 @@
   #include "cmat.h" // pas besoin ?
   #include "error.h"
   #include "symbtab.h"
+  #include "generation.h"
   #include <stdio.h>// ?
   #include <stdlib.h>// ?
 
@@ -15,7 +16,7 @@
   float floatval;
   name_t strval;
   struct {
-      Symbol * ptr;
+    Symbol * ptr;
   } exprval;
   Symbol * variable;
   unsigned type;
@@ -24,9 +25,14 @@
   Matrix* matrix;
   char * string;
   Extract liste_extract;
+  /*struct {
+    Quad_List vrai;
+    Quad_List faux;
+  } exprbool;
+  unsigned int quad;*/
 }
 
-%token DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT STATIC CONST IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE
+%token NOT AND OR DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT STATIC CONST IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE
 
 %token PRINT SEMICOLON PLUS MINUS MULT ASSIGN LPAR RPAR
 %token <strval> ID
@@ -34,8 +40,8 @@
 %token <floatval> V_FLOAT
 %token <string> V_STRING
 
-%left PLUS MINUS
-%left MULT
+%left MULT DIV EQUAL NOT_EQUAL
+%left PLUS MINUS GTOE LTOE GREATER_THAN LESS_THAN
 %nonassoc UMINUS
 
 %type <type> type_var
@@ -44,8 +50,13 @@
 %type<intval> taille 
 %type<floatval> valeur_matrix
 %type<matrix> init_matrix liste_matrix_ligne matrix_une_ligne matrix_remplir_colonne
-%type <exprval> expr
+%type <exprval> expr expr_bool
 %type<liste_extract> extraction intervalle
+
+/*
+%type<exprbool> expr_bool
+%type<quad> M
+*/
 
 %start Start
 
@@ -57,13 +68,31 @@ Start
   ;
 
 fonction_principale 
-  : INT MAIN LPAR RPAR LCURLY suite_instructions RCURLY
+  : INT MAIN LPAR RPAR debut_bloc suite_instructions fin_bloc
   ; 
 
+debut_bloc
+  : LCURLY 
+  {
+    gencode(CODE, DEBUT_BLOC, NULL, NULL, NULL);
+  }
+  ;
+
+fin_bloc 
+  : RCURLY
+  {
+    gencode(CODE, FIN_BLOC, NULL, NULL, NULL);
+  }
+  ;
+
+
 suite_instructions 
-: instr SEMICOLON suite_instructions
-| instr SEMICOLON
-;
+  : %empty
+  | instr SEMICOLON suite_instructions
+  | struct_if suite_instructions
+  | struct_while suite_instructions
+  // | struct_for suite_instructions
+  ;
 
 instr 
   : declaration_variable  
@@ -527,26 +556,11 @@ expr
     $$.ptr = newtemp(SYMTAB, type, val);
     gencode(CODE,BOP_PLUS,$$.ptr,$1.ptr,$3.ptr); 
   }
-//| expr MINUS expr
-  /*{ 
-     $$.ptr = newtemp(SYMTAB);
-     gencode(CODE,BOP_MINUS,$$.ptr,$1.ptr,$3.ptr); 
-  }*/
-//| expr MULT expr
-  /*{ 
-     $$.ptr = newtemp(SYMTAB);
-     gencode(CODE,BOP_MULT,$$.ptr,$1.ptr,$3.ptr); 
-  }*/
-//| MINUS expr %prec UMINUS
-  /*{ 
-     $$.ptr = newtemp(SYMTAB);
-     gencode(CODE,UOP_MINUS,$$.ptr,$2.ptr,NULL); 
-  }*/
-| LPAR expr RPAR
+  | LPAR expr RPAR
   { 
      $$.ptr = $2.ptr;
   }
-| ID
+  | ID
   { 
     Symbol * id = symtable_get(SYMTAB,$1);
     if (id==NULL){
@@ -554,20 +568,20 @@ expr
         exit(1);
     }
     if (!id->var->init){
-      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans le membre droit d'une affectation.\n",$1);
+      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",$1);
       exit(1);
     }
     $$.ptr = id;
   }
-| V_INT
-  { 
-    $$.ptr = symtable_const_int(SYMTAB,$1); 
-  }
-| V_FLOAT
-  { 
-    $$.ptr = symtable_const_float(SYMTAB,$1); 
-  }
-| ID LBRACKET extraction RBRACKET // matrice une dimension
+  | V_INT
+    { 
+      $$.ptr = symtable_const_int(SYMTAB,$1); 
+    }
+  | V_FLOAT
+    { 
+      $$.ptr = symtable_const_float(SYMTAB,$1); 
+    }
+  | ID LBRACKET extraction RBRACKET // matrice une dimension
   {
     // TODO : si taille de extraction = 1  (et que c'est pas -1)-> float 
 
@@ -579,7 +593,7 @@ expr
     }
 
     if (!id->var->init){
-      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans le membre droit d'une affectation.\n",$1);
+      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",$1);
       exit(1);
     }
 
@@ -651,7 +665,7 @@ expr
     }
     free($3.liste);
   }
-| ID LBRACKET extraction RBRACKET LBRACKET extraction RBRACKET // matrice deux dimensions
+  | ID LBRACKET extraction RBRACKET LBRACKET extraction RBRACKET // matrice deux dimensions
   {
     // 1. vérifier que ID est déclarée
     Symbol * id = symtable_get(SYMTAB,$1);
@@ -661,7 +675,7 @@ expr
     }
 
     if (!id->var->init){
-      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans le membre droit d'une affectation.\n",$1);
+      fprintf(stderr,"La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",$1);
       exit(1);
     }
 
@@ -766,7 +780,23 @@ expr
     free($3.liste);
     free($6.liste);
   }
-; 
+
+  //| expr MINUS expr
+    /*{ 
+      $$.ptr = newtemp(SYMTAB);
+      gencode(CODE,BOP_MINUS,$$.ptr,$1.ptr,$3.ptr); 
+    }*/
+  //| expr MULT expr
+    /*{ 
+      $$.ptr = newtemp(SYMTAB);
+      gencode(CODE,BOP_MULT,$$.ptr,$1.ptr,$3.ptr); 
+    }*/
+  //| MINUS expr %prec UMINUS
+    /*{ 
+      $$.ptr = newtemp(SYMTAB);
+      gencode(CODE,UOP_MINUS,$$.ptr,$2.ptr,NULL); 
+    }*/
+  ; 
 
 extraction 
   : intervalle { $$ = $1; }
@@ -774,17 +804,195 @@ extraction
   ;
 
 intervalle 
-    : MULT  { $$ = creer_liste_extract(-1); }
-    | V_INT { $$ = creer_liste_extract($1) ; }
-    | V_INT DOT DOT V_INT 
-        { 
-            if ($1 > $4) {
-              fprintf(stderr, "Dans une extraction, l'indice de gauche doit être inférieur ou égal à l'indice de droite.\n");
-              exit(1);
-            }
-            creer_liste_extract_intervalle($1,$4);
-        }
-    ;
+  : MULT  { $$ = creer_liste_extract(-1); }
+  | V_INT { $$ = creer_liste_extract($1) ; }
+  | V_INT DOT DOT V_INT 
+    { 
+      if ($1 > $4) {
+        fprintf(stderr, "Dans une extraction, l'indice de gauche doit être inférieur ou égal à l'indice de droite.\n");
+        exit(1);
+      }
+      creer_liste_extract_intervalle($1,$4);
+    }
+  ;
+
+expr_bool
+  : expr 
+    {
+      unsigned type;
+      switch($1.ptr->kind){
+      case(NAME):
+        assert($1.ptr->var->init);
+        type = $1.ptr->var->type;
+        break;
+      case(CONST_INT):
+        type = INT;
+        break;
+      case(CONST_FLOAT):
+        type = FLOAT;
+        break;
+      default:
+        fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+        break;
+      }
+      if (type==INT || type==FLOAT){
+        valeur val;
+        $$.ptr = newtemp(SYMTAB, INT, val);
+        gencode(CODE,B_EVAL,$$.ptr,$1.ptr, NULL);
+
+        /*
+        $$.true = crelist(CODE->nextquad);
+        gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
+        $$.false = crelist(CODE->nextquad);
+        gencode(CODE,GOTO,NULL,NULL,NULL);
+        */
+      } else {
+        fprintf(stderr, "Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+      }
+    }
+  | expr_bool OR expr_bool
+    {
+      valeur val;
+      $$.ptr = newtemp(SYMTAB, INT, val);
+      gencode(CODE,B_OU,$$.ptr,$1.ptr,$3.ptr);
+      // complete($1.false, $4);
+    }
+  | expr_bool AND expr_bool
+    {
+      valeur val;
+      $$.ptr = newtemp(SYMTAB, INT, val);
+      gencode(CODE,B_ET,$$.ptr,$1.ptr,$3.ptr);
+    }
+  | NOT expr_bool
+    {
+      valeur val;
+      $$.ptr = newtemp(SYMTAB, INT, val);
+      gencode(CODE,B_NOT,$$.ptr,$2.ptr,NULL);
+    }
+  | LPAR expr_bool RPAR
+    {
+      $$.ptr = $2.ptr;
+    }
+  | expr LESS_THAN expr 
+    {
+    unsigned type1, type2;
+
+    switch($1.ptr->kind){
+      case(NAME):
+        assert($1.ptr->var->init);
+        type1 = $1.ptr->var->type;
+        break;
+      case(CONST_INT):
+        type1 = INT;
+        break;
+      case(CONST_FLOAT):
+        type1 = FLOAT;
+        break;
+      default:
+        fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+        break;
+    }
+
+    switch($3.ptr->kind){
+      case(NAME):
+        assert($3.ptr->var->init);
+        type2 = $3.ptr->var->type;
+        break;
+      case(CONST_INT):
+        type2 = INT;
+        break;
+      case(CONST_FLOAT):
+        type2 = FLOAT;
+        break;
+      default:
+        fprintf(stderr,"Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+        exit(1);
+        break;
+      }
+
+    if ((type1==INT || type1==FLOAT) && (type1==INT || type1==FLOAT)) {
+      valeur val;
+      $$.ptr = newtemp(SYMTAB, INT, val);
+      gencode(CODE,B_LT,$$.ptr,$1.ptr,$3.ptr);
+      /*
+      $$.true = crelist(CODE->nextquad);
+      gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
+      $$.false = crelist(CODE->nextquad);
+      gencode(CODE,GOTO,NULL,NULL,NULL);
+      */
+    } else {
+      fprintf(stderr, "Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n");
+      exit(1);
+    }
+
+    
+    }
+  ;
+
+
+
+evaluation_if
+  : LPAR expr_bool RPAR 
+  {
+    gencode(CODE,DEBUT_IF,$2.ptr,NULL,NULL);
+  }
+  ;
+
+fin_bloc_if
+  : RCURLY
+  {
+    gencode(CODE, FIN_BLOC, NULL, NULL, NULL);
+    gencode(CODE, FIN_IF, NULL, NULL, NULL);
+  }
+  ;
+
+saut_fin_if 
+  : RCURLY
+  {
+    gencode(CODE, JUMP_FIN_IF, NULL, NULL, NULL);
+    gencode(CODE, FIN_BLOC, NULL, NULL, NULL);
+  }
+
+struct_if
+  : IF evaluation_if debut_bloc bloc fin_bloc_if
+  | IF evaluation_if debut_bloc bloc saut_fin_if ELSE debut_bloc bloc fin_bloc_if
+  ;
+
+debut_while
+  : LPAR
+  {
+    gencode(CODE,DEBUT_WHILE,NULL,NULL,NULL);
+  }
+  ;
+
+fin_while
+  :  RPAR 
+  {
+    gencode(CODE,FIN_WHILE,NULL,NULL,NULL);
+  }
+
+saut_fin_while
+  : RCURLY
+  {
+    gencode(CODE, JUMP_DEBUT_WHILE, NULL, NULL, NULL);
+    gencode(CODE, FIN_BLOC, NULL, NULL, NULL);
+  }
+
+struct_while 
+  : WHILE debut_while expr_bool fin_while debut_bloc bloc saut_fin_while
+  ;
+
+bloc
+  : %empty
+  | afficher SEMICOLON bloc
+  | affectation SEMICOLON bloc
+  | struct_if bloc
+  | struct_while bloc
+  // | struct_for bloc
+  ;
 
 /*
 retour 

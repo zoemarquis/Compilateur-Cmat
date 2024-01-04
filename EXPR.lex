@@ -39,6 +39,10 @@ STRING \"([^"])*\"
                                                 yylval.strval[7] = '\0';
                                                 return ID;}
 
+"||"                                         { return OR; }
+"&&"                                         { return AND; }
+"!"                                         { return NOT; }
+
 "\."                                        { return DOT; }
 "="                                         { return ASSIGN; }
 "~"                                         { return TILDE;}

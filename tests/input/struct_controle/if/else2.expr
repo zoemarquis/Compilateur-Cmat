@@ -1,0 +1,25 @@
+int main() {
+  if (1) {
+    printf("alors1\n");
+    if (2) {
+      printf("alors2\n");
+      if (0) {
+        printf("alors3\n");
+      } else {
+        printf("sinon3\n");
+      }
+      if (4) {
+        printf("alors4\n");
+      }
+    } else {
+      printf("sinon2\n");
+    }
+  } else {
+    printf("sinon1\n");
+    if (0) {
+        printf("alors5\n");
+    } else {
+        printf("sinon5\n");
+    }
+  }
+}

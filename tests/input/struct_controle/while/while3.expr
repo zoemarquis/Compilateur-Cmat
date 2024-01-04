@@ -1,0 +1,25 @@
+int main() {
+  int var_i = 0;
+  int var_j = 3;
+  int var_k;
+  
+  while (var_i < var_j ||  0){
+    printf("while i < j \n i = ");
+    print(var_i);
+    printf("\n");
+
+    var_k = 0;
+    while (var_k < var_i){
+        printf("while k < i \n i = ");
+        if (var_i < 1){
+            printf("i < 1\n");
+        } else {
+            printf("i >= 1\n");
+        }
+        var_k = var_k + 1;
+    }
+    var_i = var_i + 1;
+  }
+
+  printf("fin while\n");
+}

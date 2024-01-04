@@ -1,0 +1,22 @@
+int main(){
+
+    int var_i = 1;
+    int var_j = 2;
+    
+    if (var_i < var_j){
+        printf("i < j = vrai\n");
+    } else {
+         printf("i < j = faux\n");
+    }
+
+    var_i = 2;
+    var_j = 1;
+    
+    if (var_i < var_j){
+        printf("i < j = vrai\n");
+    } else {
+         printf("i < j = faux\n");
+    }
+
+    
+}

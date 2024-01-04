@@ -1,0 +1,18 @@
+int main() {
+  int i = 0;
+  printf("debut while\n");
+  
+  
+  while (!i){
+    printf("dans while\n");
+    print(i);
+    i = 1;
+  }
+
+    /*
+  if (i){
+    printf("i\n");
+  }
+  */
+  printf("fin while\n");
+}
