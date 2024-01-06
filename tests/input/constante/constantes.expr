@@ -1,0 +1,4 @@
+const int A = 1;
+const int B = -1;
+const float C = 0.5;
+const float D = -0.5;

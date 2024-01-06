@@ -56,7 +56,7 @@ void gencode(Code *c, enum quad_kind k, Symbol *s1, Symbol *s2, Symbol *s3) {
 
 Symbol *newtemp(SymTable *t, unsigned type, valeur val) {
   Symbol *s;
-  name_t name;
+  nom_var name;
   sprintf(name, "t%d", t->temporary);
   variable *v = creer_variable(name, type, true, val);
   s = symtable_put(t, name, v);
@@ -64,6 +64,7 @@ Symbol *newtemp(SymTable *t, unsigned type, valeur val) {
   return s;
 }
 
+/*
 static void symbol_dump(Symbol *s) {
   switch (s->kind) {
     case NAME:
@@ -79,11 +80,16 @@ static void symbol_dump(Symbol *s) {
       break;
   }
 }
+*/
 
 static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
                       Stack *pile_for, Quad *q) {
   unsigned type1, type2;
   switch (q->kind) {
+    case FONCTION:
+      printf("main: \n");
+      break;
+
     case DEBUT_BLOC:
       printf("debut_bloc_%d:\n", cpt_bloc);
       push(pile_bloc, cpt_bloc);
@@ -95,7 +101,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       break;
     case DEBUT_IF:
       printf("debut_if_%d:\n", cpt_ctrl);
-      printf("\tlw $t0, %s\n", q->sym1->name);
+      printf("\tlw $t0, %s\n", q->sym1->nom_var_fc);
       printf("\tbeqz $t0, fin_bloc_%d\n", cpt_bloc);
       push(pile_if, cpt_ctrl);
       cpt_ctrl++;
@@ -149,41 +155,41 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       if (q->sym1->var->type == INT) {
         if (q->sym2->kind == CONST_INT ||
             (q->sym2->kind == NAME && q->sym2->var->type == INT))
-          printf("\tlw $t0, %s\n", q->sym2->name);
+          printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
         else {
           fprintf(stderr, "Incompatibilité de types à l'affectation de %s.\n",
-                  q->sym1->name);
+                  q->sym1->nom_var_fc);
           exit(1);
         }  // plutot un assert ?
-        printf("\tsw $t0,%s\n", q->sym1->name);
+        printf("\tsw $t0,%s\n", q->sym1->nom_var_fc);
       }
 
       if (q->sym1->var->type == FLOAT) {
         // float = float
         if ((q->sym2->kind == CONST_FLOAT) ||
             (q->sym2->kind == NAME && q->sym2->var->type == FLOAT))
-          printf("\tl.s $f0, %s\n", q->sym2->name);
+          printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
         // float = int
         else if (q->sym2->kind == CONST_INT ||
                  (q->sym2->kind == NAME && q->sym2->var->type == INT)) {
-          printf("\tlw $t0, %s\n", q->sym2->name);
+          printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
           printf("\tmtc1 $t0, $f0\n");
           printf("\tcvt.s.w $f0, $f0\n");
         } else {
           fprintf(stderr, "Incompatibilité de types à l'affectation de %s.\n",
-                  q->sym1->name);
+                  q->sym1->nom_var_fc);
           exit(1);
         }
-        printf("\ts.s $f0, %s\n", q->sym1->name);
+        printf("\ts.s $f0, %s\n", q->sym1->nom_var_fc);
       }
 
       // matrix = matrix
       if (q->sym1->var->type == MATRIX) {
         if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
-          printf("\tla $a0, %s\n", q->sym2->name);
-          printf("\tla $a1, %s\n", q->sym1->name);
-          printf("\tlw $t2, %s_rows\n", q->sym1->name);
-          printf("\tlw $t3, %s_cols\n", q->sym1->name);
+          printf("\tla $a0, %s\n", q->sym2->nom_var_fc);
+          printf("\tla $a1, %s\n", q->sym1->nom_var_fc);
+          printf("\tlw $t2, %s_rows\n", q->sym1->nom_var_fc);
+          printf("\tlw $t3, %s_cols\n", q->sym1->nom_var_fc);
 
           printf("\tli $t0, 0\n");
           printf("boucle_copy_matrices_ligne_%d:\n", cpt_label);
@@ -209,7 +215,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           cpt_label++;
         } else {
           fprintf(stderr, "Incompatibilité de types à l'affectation de %s.\n",
-                  q->sym1->name);
+                  q->sym1->nom_var_fc);
           exit(1);
         }
       }
@@ -220,11 +226,11 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) &&
           (q->sym3->kind == NAME &&
            q->sym3->var->type == MATRIX)) {  // add 2 matrix
-        printf("\tla $a0, %s\n", q->sym2->name);
-        printf("\tla $a1, %s\n", q->sym3->name);
-        printf("\tla $a2, %s\n", q->sym1->name);
-        printf("\tlw $t2, %s_rows\n", q->sym2->name);
-        printf("\tlw $t3, %s_cols\n", q->sym2->name);
+        printf("\tla $a0, %s\n", q->sym2->nom_var_fc);
+        printf("\tla $a1, %s\n", q->sym3->nom_var_fc);
+        printf("\tla $a2, %s\n", q->sym1->nom_var_fc);
+        printf("\tlw $t2, %s_rows\n", q->sym2->nom_var_fc);
+        printf("\tlw $t3, %s_cols\n", q->sym2->nom_var_fc);
 
         printf("\tli $t0, 0\n");
         printf("boucle_add_matrices_ligne_%d:\n", cpt_label);
@@ -255,13 +261,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       } else if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) ||
                  (q->sym3->kind == NAME &&
                   q->sym3->var->type == MATRIX)) {  // mat + cst ou cst + mat
-        name_t mat;
-        name_t cst;
+        nom_var mat;
+        nom_var cst;
         unsigned type = 0;
 
         if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
-          strcpy(mat, q->sym2->name);
-          strcpy(cst, q->sym3->name);
+          strcpy(mat, q->sym2->nom_var_fc);
+          strcpy(cst, q->sym3->nom_var_fc);
           if (q->sym3->kind == NAME) {
             type = q->sym3->var->type;
           } else {
@@ -275,8 +281,8 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             }
           }
         } else {
-          strcpy(mat, q->sym3->name);
-          strcpy(cst, q->sym2->name);
+          strcpy(mat, q->sym3->nom_var_fc);
+          strcpy(cst, q->sym2->nom_var_fc);
           if (q->sym2->kind == NAME) {
             type = q->sym2->var->type;
           } else {
@@ -296,7 +302,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         if (type == INT) {
           printf("\tcvt.s.w $f1, $f1\n");
         }
-        printf("\tla $a1, %s\n", q->sym1->var->name);
+        printf("\tla $a1, %s\n", q->sym1->var->nom_var_fc);
         printf("\tlw $t2, %s_rows\n", mat);
         printf("\tlw $t3, %s_cols\n", mat);
 
@@ -328,30 +334,30 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         // sym2
         if (q->sym2->kind == CONST_INT ||
             (q->sym2->kind == NAME && q->sym2->var->type == INT)) {
-          printf("\tlw $t0, %s\n", q->sym2->name);
+          printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
           type1 = INT;
         }  // int
         else if ((q->sym2->kind == CONST_FLOAT) ||
                  (q->sym2->kind == NAME && q->sym2->var->type == FLOAT)) {
-          printf("\tl.s $f0, %s\n", q->sym2->name);
+          printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
           type1 = FLOAT;
         }  // float
 
         // sym3
         if (q->sym3->kind == CONST_INT ||
             (q->sym3->kind == NAME && q->sym3->var->type == INT)) {
-          printf("\tlw $t1, %s\n", q->sym3->name);
+          printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
           type2 = INT;
         }  // int
         else if ((q->sym3->kind == CONST_FLOAT) ||
                  (q->sym3->kind == NAME && q->sym3->var->type == FLOAT)) {
-          printf("\tl.s $f1, %s\n", q->sym3->name);
+          printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
           type2 = FLOAT;
         }  // float
 
         if (type1 == INT && type2 == INT) {  // add int
           printf("\tadd $t0,$t0,$t1\n");
-          printf("\tsw $t0, %s\n", q->sym1->name);
+          printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
         } else {
           if (type1 == INT && type2 == FLOAT) {
             printf("mtc1 $t0, $f0\n");
@@ -361,7 +367,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             printf("cvt.s.w $f1, $f1\n");
           }  // cast int -> float
           printf("\tadd.s $f2,$f0,$f1\n");
-          printf("\ts.s $f2, %s\n", q->sym1->name);  // add float
+          printf("\ts.s $f2, %s\n", q->sym1->nom_var_fc);  // add float
         }
       }
       break;
@@ -371,13 +377,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       if (q->sym2->kind == CONST_INT)
         printf("\tli $t0, %d\n", q->sym2->var->val.entier);
       else
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
       if (q->sym3->kind == CONST_INT)
         printf("\tli $t1, %d\n", q->sym3->var->val.entier);
       else
-        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
       printf("\tsub $t0,$t0,$t1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       break;
 
     // TODO
@@ -385,13 +391,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       if (q->sym2->kind == CONST_INT)
         printf("\tli $t0, %d\n", q->sym2->var->val.entier);
       else
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
       if (q->sym3->kind == CONST_INT)
         printf("\tli $t1, %d\n", q->sym3->var->val.entier);
       else
-        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
       printf("\tmul $t0,$t0,$t1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       break;
 
     // TODO
@@ -399,16 +405,16 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       if (q->sym2->kind == CONST_INT)
         printf("\tli $t0, %d\n", q->sym2->var->val.entier);
       else
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
       printf("\tnegu $t0,$t0\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       break;
 
     // extraction
     case EXTR_LIGNE:
 
-      printf("\tlw $t3, %s_rows\n", q->sym1->name);  // sym1_cols
-      printf("\tlw $t4, %s_cols\n", q->sym2->name);  // sym2_rows
+      printf("\tlw $t3, %s_rows\n", q->sym1->nom_var_fc);  // sym1_cols
+      printf("\tlw $t4, %s_cols\n", q->sym2->nom_var_fc);  // sym2_rows
 
       printf("\tli $t0, 0\n");  // $t0 = i
       printf("boucle_extrligne_i_%d:\n", cpt_label);
@@ -418,9 +424,9 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("boucle_extrligne_j_%d:\n", cpt_label);
       printf("\t\tbge $t1, $t4, j_suivant_%d\n", cpt_label);
 
-      printf("\t\tla $a0, %s\n", q->sym2->name);  // matrice originale
-      printf("\t\tla $a1, %s\n", q->sym1->name);  // matrice cible
-      printf("\t\tla $a2, %s\n", q->sym3->name);
+      printf("\t\tla $a0, %s\n", q->sym2->nom_var_fc);  // matrice originale
+      printf("\t\tla $a1, %s\n", q->sym1->nom_var_fc);  // matrice cible
+      printf("\t\tla $a2, %s\n", q->sym3->nom_var_fc);
       // liste des indices des colonnes à extraire
 
       printf("\t\tmove $t2, $t0\n");
@@ -428,14 +434,14 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("\t\tadd $a2, $a2, $t2\n");
       printf("\t\tlw $t5, 0($a2)\n");  // $t5 = indice[i]
 
-      printf("\t\tlw $t6, %s_cols\n", q->sym2->name);
+      printf("\t\tlw $t6, %s_cols\n", q->sym2->nom_var_fc);
       printf("\t\tmul $t6, $t5, $t6\n");
       printf("\t\tadd $t6, $t6, $t1 \n");  //
       printf("\t\tsll $t6, $t6, 2\n");
       printf("\t\tadd $a0, $a0, $t6\n");
       printf("\t\tl.s $f0, 0($a0)\n");
 
-      printf("\t\tlw $t7, %s_cols\n", q->sym1->name);
+      printf("\t\tlw $t7, %s_cols\n", q->sym1->nom_var_fc);
       printf("\t\tmul $t7, $t0, $t7\n");
       printf("\t\tadd $t7, $t7, $t1\n");  //
       printf("\t\tsll $t7, $t7, 2\n");
@@ -457,8 +463,8 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
     case EXTR_COLONNE:
 
-      printf("\tlw $t3, %s_cols\n", q->sym1->name);  // sym1_cols
-      printf("\tlw $t4, %s_rows\n", q->sym2->name);  // sym2_rows
+      printf("\tlw $t3, %s_cols\n", q->sym1->nom_var_fc);  // sym1_cols
+      printf("\tlw $t4, %s_rows\n", q->sym2->nom_var_fc);  // sym2_rows
 
       printf("\tli $t0, 0\n");  // $t0 = i
       printf("boucle_extrcolonne_i_%d:\n", cpt_label);
@@ -468,9 +474,9 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("boucle_extrcolonne_j_%d:\n", cpt_label);
       printf("\t\tbge $t1, $t4, j_suivant_%d\n", cpt_label);
 
-      printf("\t\tla $a0, %s\n", q->sym2->name);  // matrice originale
-      printf("\t\tla $a1, %s\n", q->sym1->name);  // matrice cible
-      printf("\t\tla $a2, %s\n", q->sym3->name);
+      printf("\t\tla $a0, %s\n", q->sym2->nom_var_fc);  // matrice originale
+      printf("\t\tla $a1, %s\n", q->sym1->nom_var_fc);  // matrice cible
+      printf("\t\tla $a2, %s\n", q->sym3->nom_var_fc);
       // liste des indices des colonnes à extraire
 
       printf("\t\tmove $t2, $t0\n");
@@ -478,14 +484,14 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("\t\tadd $a2, $a2, $t2\n");
       printf("\t\tlw $t5, 0($a2)\n");  // $t5 = indice[i]
 
-      printf("\t\tlw $t6, %s_cols\n", q->sym2->name);
+      printf("\t\tlw $t6, %s_cols\n", q->sym2->nom_var_fc);
       printf("\t\tmul $t6, $t1, $t6\n");
       printf("\t\tadd $t6, $t6, $t5 \n");  // A_cols * j + indice[i]
       printf("\t\tsll $t6, $t6, 2\n");
       printf("\t\tadd $a0, $a0, $t6\n");
       printf("\t\tl.s $f0, 0($a0)\n");
 
-      printf("\t\tlw $t7, %s_cols\n", q->sym1->name);
+      printf("\t\tlw $t7, %s_cols\n", q->sym1->nom_var_fc);
       printf("\t\tmul $t7, $t1, $t7\n");
       printf("\t\tadd $t7, $t7, $t0\n");  // B_rows * j + i
       printf("\t\tsll $t7, $t7, 2\n");
@@ -509,41 +515,41 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("\tli $t0, %d\n", q->sym3->tuple.ligne);
       printf("\tli $t1, %d\n", q->sym3->tuple.colonne);
 
-      printf("\tlw $t2, %s_cols\n", q->sym2->name);
+      printf("\tlw $t2, %s_cols\n", q->sym2->nom_var_fc);
 
       printf("\tmul $t3, $t0, $t2\n");
       printf("\tadd $t3, $t3, $t1\n");
       printf("\tsll $t3, $t3, 2\n");
 
-      printf("\tla $a0, %s\n", q->sym2->name);
+      printf("\tla $a0, %s\n", q->sym2->nom_var_fc);
       printf("\tadd $a0, $a0, $t3\n");
 
       printf("\tl.s $f0, 0($a0)\n");
-      printf("\ts.s $f0, %s\n", q->sym1->name);
+      printf("\ts.s $f0, %s\n", q->sym1->nom_var_fc);
       break;
 
     case PUT_ELEMENT:
       printf("\tli $t0, %d\n", q->sym3->tuple.ligne);
       printf("\tli $t1, %d\n", q->sym3->tuple.colonne);
 
-      printf("\tlw $t2, %s_cols\n", q->sym1->name);
+      printf("\tlw $t2, %s_cols\n", q->sym1->nom_var_fc);
 
       printf("\tmul $t3, $t0, $t2\n");
       printf("\tadd $t3, $t3, $t1\n");
       printf("\tsll $t3, $t3, 2\n");
 
-      printf("\tla $a0, %s\n", q->sym1->name);
+      printf("\tla $a0, %s\n", q->sym1->nom_var_fc);
       printf("\tadd $a0, $a0, $t3\n");
 
       if (q->sym2->kind == CONST_INT ||
           (q->sym2->kind == NAME && q->sym2->var->type == INT)) {
-        printf("\tlw $t4, %s\n", q->sym2->name);
+        printf("\tlw $t4, %s\n", q->sym2->nom_var_fc);
         printf("\tmtc1 $t4, $f0\n");
         printf("\tcvt.s.w $f0, $f0\n");
       }  // int
       else if ((q->sym2->kind == CONST_FLOAT) ||
                (q->sym2->kind == NAME && q->sym2->var->type == FLOAT)) {
-        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
       }  // float
       else {
         fprintf(stderr, "something went wrong\n");
@@ -557,24 +563,25 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
     case CALL_PRINT:
       if (q->sym1->var->type == INT) {
         printf("\tli $v0,1\n");
-        printf("\tlw $a0, %s\n", q->sym1->name);
+        printf("\tlw $a0, %s\n", q->sym1->nom_var_fc);
       } else if (q->sym1->var->type == FLOAT) {
         printf("\tli $v0,2\n");
-        printf("\tlwc1 $f12, %s\n", q->sym1->name);
+        printf("\tlwc1 $f12, %s\n", q->sym1->nom_var_fc);
       }
       printf("\tsyscall\n");
       break;
 
     case CALL_PRINTMAT:
       // charger les dimensions de la matrice
-      printf("\tlw $t0, %s_rows\n", q->sym1->name);
-      printf("\tlw $t1, %s_cols\n", q->sym1->name);
+      printf("\tlw $t0, %s_rows\n", q->sym1->nom_var_fc);
+      printf("\tlw $t1, %s_cols\n", q->sym1->nom_var_fc);
 
       printf("\tli $t2, 0\n");
-      printf("boucle_afficher_matrix_%s_ligne_%d:\n", q->sym1->name, cpt_label);
+      printf("boucle_afficher_matrix_%s_ligne_%d:\n", q->sym1->nom_var_fc,
+             cpt_label);
 
       printf("\tli $t3, 0\n");
-      printf("boucle_afficher_matrix_%s_colonne_%d:\n", q->sym1->name,
+      printf("boucle_afficher_matrix_%s_colonne_%d:\n", q->sym1->nom_var_fc,
              cpt_label);
 
       // indice dans la matrice
@@ -582,7 +589,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("\tadd $t5, $t4, $t3\n");
 
       // afficher l'élément
-      printf("\tla $t6, %s\n", q->sym1->name);
+      printf("\tla $t6, %s\n", q->sym1->nom_var_fc);
       printf("\tmul $t5, $t5, 4\n");
       printf("\tadd $t6, $t6, $t5\n");
       printf("\tlw $t7, 0($t6)\n");
@@ -602,7 +609,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       // indice colonne < matrix_cols
       printf("\tbne $t3, $t1, boucle_afficher_matrix_%s_colonne_%d\n",
-             q->sym1->name, cpt_label);
+             q->sym1->nom_var_fc, cpt_label);
 
       // \n
       printf("\tli $v0, 4\n");
@@ -614,13 +621,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       // indice ligne < matrix_rows
       printf("\tbne $t2, $t0, boucle_afficher_matrix_%s_ligne_%d\n",
-             q->sym1->name, cpt_label);
+             q->sym1->nom_var_fc, cpt_label);
       cpt_label++;
       break;
 
     case CALL_PRINTF:
       printf("\tli $v0, 4\n");
-      printf("\tla $a0, %s\n", q->sym1->name);
+      printf("\tla $a0, %s\n", q->sym1->nom_var_fc);
       printf("\tsyscall\n");
 
       break;
@@ -630,11 +637,11 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       // assert type
       if (q->sym2->kind == CONST_INT ||
           (q->sym2->kind == NAME && q->sym2->var->type == INT)) {
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
         printf("\tbeqz $t0, false_%d\n", cpt_label);
       } else if ((q->sym2->kind == CONST_FLOAT) ||
                  (q->sym2->kind == NAME && q->sym2->var->type == FLOAT)) {
-        printf("\tl.s $f0, %s\n", q->sym2->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
         printf("\tli.s $f1, 0.0\n");
         printf("\tc.eq.s $f0, $f1\n");
         printf("\tbc1t false_%d\n", cpt_label);
@@ -644,12 +651,12 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       }
 
       printf("\tli $t0, 1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       printf("\tj fin_condi_%d\n", cpt_label);
 
       printf("false_%d:\n", cpt_label);
       printf("\tli $t0, 0\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
       printf("\tfin_condi_%d:\n", cpt_label);
 
@@ -657,24 +664,24 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       break;
 
     case B_OU:
-      printf("\tlw $t0, %s\n", q->sym2->name);
-      printf("\tlw $t1, %s\n", q->sym3->name);
+      printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+      printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
       printf("\tor $t0, $t0, $t1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       break;
 
     case B_ET:
-      printf("\tlw $t0, %s\n", q->sym2->name);
-      printf("\tlw $t1, %s\n", q->sym3->name);
+      printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+      printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
       printf("\tand $t0, $t0, $t1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       break;
 
     case B_NOT:
-      printf("\tlw $t0, %s\n", q->sym2->name);
+      printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
       // printf("\tlw $t1, 1\n");
       printf("\txori $t0, $t0, 1\n");  // not = xor 1
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       break;
 
     case B_LT:
@@ -715,24 +722,24 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
-        printf("\tlw $t0, %s\n", q->sym2->name);
-        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
         printf("\tbge $t0, $t1, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.lt.s $f0, $f1\n");
         printf("\tbc1f, false_%d\n", cpt_label);
       } else if (type1 == INT && type2 == FLOAT) {  // int et float
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
         printf("\tmtc1 $t0, $f0\n");
         printf("\tcvt.s.w $f0, $f0\n");
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.lt.s $f0, $f1\n");
         printf("\tbc1f, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == INT) {
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t0, %s\n", q->sym3->nom_var_fc);
         printf("\tmtc1 $t0, $f1\n");
         printf("\tcvt.s.w $f1, $f1\n");
         printf("\tc.lt.s $f0, $f1\n");
@@ -744,13 +751,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       // cas vrai
       printf("\tli $t0, 1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       printf("\tj fin_condi_%d\n", cpt_label);
 
       // cas faux
       printf("false_%d:\n", cpt_label);
       printf("\tli $t0, 0\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
       printf("\tfin_condi_%d:\n", cpt_label);
 
@@ -796,24 +803,24 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
-        printf("\tlw $t0, %s\n", q->sym2->name);
-        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
         printf("\tbgt $t0, $t1, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.le.s $f0, $f1\n");
         printf("\tbc1f, false_%d\n", cpt_label);
       } else if (type1 == INT && type2 == FLOAT) {  // int et float
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
         printf("\tmtc1 $t0, $f0\n");
         printf("\tcvt.s.w $f0, $f0\n");
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.le.s $f0, $f1\n");
         printf("\tbc1f, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == INT) {  // float et int
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t0, %s\n", q->sym3->nom_var_fc);
         printf("\tmtc1 $t0, $f1\n");
         printf("\tcvt.s.w $f1, $f1\n");
         printf("\tc.le.s $f0, $f1\n");
@@ -825,13 +832,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       // cas vrai
       printf("\tli $t0, 1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       printf("\tj fin_condi_%d\n", cpt_label);
 
       // cas faux
       printf("false_%d:\n", cpt_label);
       printf("\tli $t0, 0\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
       printf("\tfin_condi_%d:\n", cpt_label);
 
@@ -877,24 +884,24 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
-        printf("\tlw $t0, %s\n", q->sym2->name);
-        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
         printf("\tble $t0, $t1, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.le.s $f0, $f1\n");
         printf("\tbc1t, false_%d\n", cpt_label);
       } else if (type1 == INT && type2 == FLOAT) {  // int et float
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
         printf("\tmtc1 $t0, $f0\n");
         printf("\tcvt.s.w $f0, $f0\n");
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.le.s $f0, $f1\n");
         printf("\tbc1t, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == INT) {
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t0, %s\n", q->sym3->nom_var_fc);
         printf("\tmtc1 $t0, $f1\n");
         printf("\tcvt.s.w $f1, $f1\n");
         printf("\tc.le.s $f0, $f1\n");
@@ -906,13 +913,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       // cas vrai
       printf("\tli $t0, 1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       printf("\tj fin_condi_%d\n", cpt_label);
 
       // cas faux
       printf("false_%d:\n", cpt_label);
       printf("\tli $t0, 0\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
       printf("\tfin_condi_%d:\n", cpt_label);
 
@@ -958,24 +965,24 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
-        printf("\tlw $t0, %s\n", q->sym2->name);
-        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
         printf("\tblt $t0, $t1, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.lt.s $f0, $f1\n");
         printf("\tbc1t, false_%d\n", cpt_label);
       } else if (type1 == INT && type2 == FLOAT) {  // int et float
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
         printf("\tmtc1 $t0, $f0\n");
         printf("\tcvt.s.w $f0, $f0\n");
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.lt.s $f0, $f1\n");
         printf("\tbc1t, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == INT) {
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t0, %s\n", q->sym3->nom_var_fc);
         printf("\tmtc1 $t0, $f1\n");
         printf("\tcvt.s.w $f1, $f1\n");
         printf("\tc.lt.s $f0, $f1\n");
@@ -987,13 +994,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       // cas vrai
       printf("\tli $t0, 1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       printf("\tj fin_condi_%d\n", cpt_label);
 
       // cas faux
       printf("false_%d:\n", cpt_label);
       printf("\tli $t0, 0\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
       printf("\tfin_condi_%d:\n", cpt_label);
 
@@ -1039,24 +1046,24 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
-        printf("\tlw $t0, %s\n", q->sym2->name);
-        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
         printf("\tbne $t0, $t1, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.eq.s $f0, $f1\n");
         printf("\tbc1f, false_%d\n", cpt_label);
       } else if (type1 == INT && type2 == FLOAT) {  // int et float
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
         printf("\tmtc1 $t0, $f0\n");
         printf("\tcvt.s.w $f0, $f0\n");
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.eq.s $f0, $f1\n");
         printf("\tbc1f, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == INT) {
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t0, %s\n", q->sym3->nom_var_fc);
         printf("\tmtc1 $t0, $f1\n");
         printf("\tcvt.s.w $f1, $f1\n");
         printf("\tc.eq.s $f0, $f1\n");
@@ -1068,13 +1075,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       // cas vrai
       printf("\tli $t0, 1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       printf("\tj fin_condi_%d\n", cpt_label);
 
       // cas faux
       printf("false_%d:\n", cpt_label);
       printf("\tli $t0, 0\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
       printf("\tfin_condi_%d:\n", cpt_label);
 
@@ -1120,24 +1127,24 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
-        printf("\tlw $t0, %s\n", q->sym2->name);
-        printf("\tlw $t1, %s\n", q->sym3->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
         printf("\tbeq $t0, $t1, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == FLOAT) {  // si les 2 sont des float
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.eq.s $f0, $f1\n");
         printf("\tbc1t, false_%d\n", cpt_label);
       } else if (type1 == INT && type2 == FLOAT) {  // int et float
-        printf("\tlw $t0, %s\n", q->sym2->name);
+        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
         printf("\tmtc1 $t0, $f0\n");
         printf("\tcvt.s.w $f0, $f0\n");
-        printf("\tl.s $f1, %s\n", q->sym3->name);
+        printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
         printf("\tc.eq.s $f0, $f1\n");
         printf("\tbc1t, false_%d\n", cpt_label);
       } else if (type1 == FLOAT && type2 == INT) {
-        printf("\tl.s $f0, %s\n", q->sym2->name);
-        printf("\tlw $t0, %s\n", q->sym3->name);
+        printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+        printf("\tlw $t0, %s\n", q->sym3->nom_var_fc);
         printf("\tmtc1 $t0, $f1\n");
         printf("\tcvt.s.w $f1, $f1\n");
         printf("\tc.eq.s $f0, $f1\n");
@@ -1149,13 +1156,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       // cas vrai
       printf("\tli $t0, 1\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       printf("\tj fin_condi_%d\n", cpt_label);
 
       // cas faux
       printf("false_%d:\n", cpt_label);
       printf("\tli $t0, 0\n");
-      printf("\tsw $t0, %s\n", q->sym1->name);
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
       printf("\tfin_condi_%d:\n", cpt_label);
 
@@ -1173,7 +1180,7 @@ void code_dump(Code *c) {
   unsigned int i;
 
   printf("\t.text\n");
-  printf("main:\n");
+  // printf("main:\n");
 
   Stack *pile_bloc = createStack(MAX_SIZE);
   Stack *pile_if = createStack(MAX_SIZE);
@@ -1188,6 +1195,7 @@ void code_dump(Code *c) {
   freeStack(pile_while);
   freeStack(pile_for);
 
+  printf("exit: \n");
   printf("# exit\n");
   printf("\tli $v0,10\n");
   printf("\tsyscall\n");

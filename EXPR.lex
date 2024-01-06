@@ -21,6 +21,7 @@ STRING \"([^"])*\"
 
 %%
 "main"                                      { return MAIN;}
+"const"                                     { return CONST;}
 "printf"                                    { return PRINTF;}
 "printmat"                                  { return PRINTMAT;}
 "print"                                     { return PRINT;}
@@ -35,8 +36,8 @@ STRING \"([^"])*\"
 "while"                                     { return WHILE;}
 "for"                                       { return FOR;}
 {ID}                                        {
-                                                strncpy(yylval.strval,yytext,7);
-                                                yylval.strval[7] = '\0';
+                                                strncpy(yylval.strval,yytext,15);
+                                                yylval.strval[15] = '\0';
                                                 return ID;}
 
 "||"                                         { return OR; }

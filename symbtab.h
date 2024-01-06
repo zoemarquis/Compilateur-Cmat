@@ -5,8 +5,11 @@
 
 #include "error.h"
 #include "matrix.h"
+#include "uthash.h"
 
-typedef char name_t[8];
+typedef char nom_var[16];
+typedef char nom_fonction[16];
+typedef char nom_var_fonction[32];
 
 typedef union _valeur {
   int entier;
@@ -15,7 +18,8 @@ typedef union _valeur {
 } valeur;
 
 typedef struct _var {
-  name_t name;
+  nom_var name;
+  nom_var_fonction nom_var_fc;
   unsigned type;  // flag
   bool init;      // si la variable a été initialisée
   valeur val;
@@ -33,7 +37,8 @@ typedef struct _tuple {
 
 typedef struct _symbol {
   enum { NAME, CONST_INT, CONST_FLOAT, STRING, EXTRACT, INDICES } kind;
-  name_t name;
+  nom_var name;
+  nom_var_fonction nom_var_fc;
   union {
     variable *var;
     char *string;
@@ -49,6 +54,8 @@ typedef struct _symtable {
   unsigned int temporary;
   unsigned int size;
   Symbol *symbols;
+  nom_fonction nom;
+  UT_hash_handle hh;
 } SymTable;
 
 typedef struct _tuple_declaration {
@@ -61,7 +68,7 @@ typedef struct _liste_tuple_decla {
   unsigned taille;
 } Liste_Tuple_Declaration;
 
-SymTable *symtable_new();
+SymTable *symtable_new(const char *fonction);
 
 Symbol *symtable_const_int(SymTable *t, int v);
 
@@ -91,7 +98,7 @@ Extract concat_extract_liste(Extract e1, Extract e2);
 
 // variable
 
-variable *creer_variable(name_t name, unsigned type, bool init, valeur val);
+variable *creer_variable(nom_var name, unsigned type, bool init, valeur val);
 
 Liste_Tuple_Declaration creer_liste_tuple_declaration(Tuple_Declaration t);
 

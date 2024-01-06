@@ -39,6 +39,7 @@ typedef struct _quad {
     FIN_FOR,
     JUMP_DEBUT_FOR,
     JUMP_MAJ_FOR,
+    FONCTION,
   } kind;
   Symbol *sym1;
   Symbol *sym2;

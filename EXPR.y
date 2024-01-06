@@ -15,7 +15,7 @@
 %union {
   int intval;
   float floatval;
-  name_t strval;
+  nom_var strval;
   struct {
     Symbol * ptr;
   } exprval;
@@ -28,7 +28,7 @@
   Extract liste_extract;
 }
 
-%token NOT AND OR DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE
+%token CONST NOT AND OR DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE
 
 %token PRINT SEMICOLON PLUS MINUS MULT ASSIGN LPAR RPAR
 %token <strval> ID
@@ -56,12 +56,79 @@
 
 Start 
   : %empty
+  | def_constantes fonction_principale
   | fonction_principale
+  //| def_constantes fonctions fonction_principale
+  ;
+
+def_constantes 
+  : def_constante SEMICOLON
+  | def_constante SEMICOLON def_constantes
+  ;
+
+def_constante
+  : CONST INT ID ASSIGN V_INT
+    {
+      Symbol * id = symtable_get(GLOBAL,$3);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
+        exit(1);
+      }
+      valeur val;
+      val.entier = $5;
+      variable * v = creer_variable($3, INT, true, val);
+      symtable_put(GLOBAL, $3, v);
+    }
+  | CONST INT ID ASSIGN MINUS V_INT 
+    {
+      Symbol * id = symtable_get(GLOBAL,$3);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
+        exit(1);
+      }
+      valeur val;
+      val.entier = -$6;
+      variable * v = creer_variable($3, INT, true, val);
+      symtable_put(GLOBAL, $3, v);
+    }
+  | CONST FLOAT ID ASSIGN V_FLOAT 
+    {
+      Symbol * id = symtable_get(GLOBAL,$3);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
+        exit(1);
+      }
+      valeur val;
+      val.flottant = $5;
+      variable * v = creer_variable($3, FLOAT, true, val);
+      symtable_put(GLOBAL, $3, v);
+    }
+  | CONST FLOAT ID ASSIGN MINUS V_FLOAT 
+    {
+      Symbol * id = symtable_get(GLOBAL,$3);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
+        exit(1);
+      }
+      valeur val;
+      val.flottant = -$6;
+      variable * v = creer_variable($3, FLOAT, true, val);
+      symtable_put(GLOBAL, $3, v);
+    }
   ;
 
 fonction_principale 
-  : INT MAIN LPAR RPAR debut_bloc suite_instructions fin_bloc
+  : INT fc_main LPAR RPAR debut_bloc suite_instructions fin_bloc 
   ; 
+
+fc_main
+  : MAIN 
+    {
+      SYMTAB = symtable_new("main");
+      add_symtable(SYMTAB);
+      gencode(CODE, FONCTION, NULL, NULL, NULL);
+    }
+  ;
 
 debut_bloc
   : LCURLY 
@@ -77,6 +144,26 @@ fin_bloc
   }
   ;
 
+/*
+struct_controle 
+  : struct_if 
+  | struct_for
+  | struct_while
+  ;
+
+instr_avec_declaration
+  : declaration_variable SEMICOLON instr_avec_declaration
+  | afficher SEMICOLON instr_avec_declaration
+  | affectation SEMICOLON instr_avec_declaration
+  ;
+
+instr_sans_declaration
+  : struct_controle instr_sans_declaration
+  // | appel_fonction
+  | afficher SEMICOLON instr_avec_declaration
+  | affectation SEMICOLON instr_avec_declaration
+  ;
+*/
 
 suite_instructions 
   : %empty
@@ -99,6 +186,12 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+        exit(1);
+      }
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$1);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
         exit(1);
       }
 
@@ -157,6 +250,13 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$1);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
         exit(1);
       }
 
@@ -227,6 +327,13 @@ affectation
         exit(1);
       }
 
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$1);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
+        exit(1);
+      }
+
       unsigned type1, type2;
 
       assert(id->kind == NAME);
@@ -293,6 +400,13 @@ affectation
         exit(1);
       }
 
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$1);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
+        exit(1);
+      }
+
       // sémantique vérifier que le type de l'expr est compatible avec le type de ID
 
       unsigned type1;
@@ -332,7 +446,7 @@ declaration_variable
         // 1. vérifier que l'entrée n'existe pas
         Symbol * id = symtable_get(SYMTAB,v->name);
         if (id) {
-          fprintf(stderr,"Ligne %d : Ligne %d : La variable '%s' a déjà été déclarée.\n",nb_ligne, nb_ligne,v->name);
+          fprintf(stderr,"Ligne %d : La variable '%s' a déjà été déclarée.\n",nb_ligne, v->name);
           exit(1);
         }
 
@@ -1466,31 +1580,6 @@ bloc
   | struct_for bloc
   ;
 
-/*
-struct_for 
-  : FOR LPAR initialisation SEMICOLON expr_bool SEMICOLON mise_a_jour RPAR debut_bloc bloc fin_for
-  // pas de déclaration dans l'initialisation et autoriser seulement les int.
-  // condition c'est juste une expr_bool 
-  // mise a jour
-  ;
-
-initialisation
-jump condition
-mise_a_jour 
-condition
-(jump fin_bloc)
-bloc
-jump mise a jour
-fin bloc
-// bloc juste 
-
-fin_for 
-  : RPAR
-
-  // mise a jour
-  // 
-  // fin bloc
-*/
 
 /*
 retour 

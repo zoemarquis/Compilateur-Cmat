@@ -8,6 +8,7 @@
 
 extern SymTable* SYMTAB;
 extern Code* CODE;
+extern SymTable* GLOBAL;
 
 extern int yyparse();
 

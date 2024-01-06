@@ -6,6 +6,8 @@
 #include <string.h>
 
 #include "EXPR.tab.h"
+#include "cmat.h"
+#include "hashtab.h"
 
 unsigned string_num = 1;
 unsigned const_int_num = 1;
@@ -13,12 +15,14 @@ unsigned const_float_num = 1;
 unsigned extract_num = 1;
 unsigned indices_num = 1;
 
-SymTable *symtable_new() {
+SymTable *symtable_new(const char *fonction) {
   SymTable *t = malloc(sizeof(SymTable));
   if (t == NULL) {  // Échec de l'allocation, gérer l'erreur
     fprintf(stderr, "Allocation mémoire échouée\n");
     exit(MEMORY_FAILURE);
   }
+  strcpy(t->nom, fonction);
+  // sprintf(t->nom, "%s", fonction);
   t->capacity = 1024;
   t->symbols = malloc(t->capacity * sizeof(Symbol));
   if (t->symbols == NULL) {  // Échec de l'allocation, gérer l'erreur
@@ -50,6 +54,7 @@ Symbol *symtable_const_int(SymTable *t, int v) {
     sprintf(s->name, "%s%d", "cint", const_int_num);
     const_int_num++;
     s->const_int = v;
+    sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
     ++(t->size);
     return s;
   } else {
@@ -68,6 +73,7 @@ Symbol *symtable_const_float(SymTable *t, float v) {
     sprintf(s->name, "%s%d", "cflt", const_float_num);
     const_float_num++;
     s->const_float = v;
+    sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
     ++(t->size);
     return s;
   } else {
@@ -82,6 +88,7 @@ Symbol *symtable_string(SymTable *t, const char *string) {
   sprintf(s->name, "%s%d", "str", string_num);
   string_num++;
   s->string = string;
+  sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
   ++(t->size);
   return s;
 }
@@ -93,6 +100,7 @@ Symbol *symtable_extract(SymTable *t, Extract extract) {
   sprintf(s->name, "%s%d", "extr", extract_num);
   extract_num++;
   s->extr = extract;
+  sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
   ++(t->size);
   return s;
 }
@@ -104,24 +112,50 @@ Symbol *symtable_indices(SymTable *t, Indices tuple) {
   sprintf(s->name, "%s%d", "ind", indices_num);
   indices_num++;
   s->tuple = tuple;
+  sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
   ++(t->size);
   return s;
 }
 
 Symbol *symtable_get(SymTable *t, const char *id) {
   unsigned int i;
+
+  /*
+  if (t == GLOBAL) {
+    fprintf(stderr, "GLOBAL\n");
+  } else {
+    fprintf(stderr, "PAS GLOBAL\n");
+  }
+  fprintf(stderr, "%d\n", GLOBAL->size);
+  */
+
+  // regarder dans la table des symboles globales
+  // SymTable *global = get_symtable(GLOBAL);
+
+  for (i = 0; i < GLOBAL->size && strcmp(GLOBAL->symbols[i].name, id) != 0; i++)
+    ;
+  if (i < GLOBAL->size) return &(GLOBAL->symbols[i]);
+
+  // La variable a déjà été déclarée -> la variable est une constante
+
+  // regarder dans la table des symboles actuelles
+
   for (i = 0; i < t->size && strcmp(t->symbols[i].name, id) != 0; i++)
     ;
   if (i < t->size) return &(t->symbols[i]);
+
   return NULL;
 }
 
 Symbol *symtable_put(SymTable *t, const char *id, variable *var) {
+  // il faudrait assert que symtable_get retourne null
   if (t->size == t->capacity) symtable_grow(t);
   Symbol *s = &(t->symbols[t->size]);
   s->kind = NAME;
   strcpy(s->name, id);
   s->var = var;
+  sprintf(var->nom_var_fc, "%s%s", t->nom, s->name);
+  sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
   ++(t->size);
   return s;
 }
@@ -210,7 +244,7 @@ Extract concat_extract_liste(Extract e1, Extract e2) {
 
 // variable
 
-variable *creer_variable(name_t name, unsigned type, bool init, valeur val) {
+variable *creer_variable(nom_var name, unsigned type, bool init, valeur val) {
   variable *var = (variable *)malloc(sizeof(variable));
   if (var == NULL) {  // Échec de l'allocation, gérer l'erreur
     fprintf(stderr, "Allocation mémoire échouée\n");
@@ -220,6 +254,13 @@ variable *creer_variable(name_t name, unsigned type, bool init, valeur val) {
   var->type = type;
   var->init = init;
   var->val = val;
+  if (!init) {
+    if (type == INT) {
+      var->val.entier = 0;
+    } else if (type == FLOAT) {
+      var->val.flottant = 0;
+    }
+  }
   return var;
 }
 
