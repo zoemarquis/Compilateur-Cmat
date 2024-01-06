@@ -37,13 +37,6 @@ static void symtable_grow(SymTable *t) {
     fprintf(stderr, "Allocation mémoire échouée\n");
     exit(MEMORY_FAILURE);
   }
-  if (t->symbols == NULL) {
-    fprintf(stderr,
-            "Erreur lors de la tentative d'aggreandissement de la table des "
-            "symboles (taille actuelle = %d)\n",
-            t->size);
-    exit(1);
-  }
 }
 
 Symbol *symtable_const_int(SymTable *t, int v) {
@@ -230,29 +223,36 @@ variable *creer_variable(name_t name, unsigned type, bool init, valeur val) {
   return var;
 }
 
-variable **creer_var_liste(variable *v1) {
-  variable **liste = (variable **)malloc(sizeof(variable *));
-  if (liste == NULL) {  // Échec de l'allocation, gérer l'erreur
-    fprintf(stderr, "Allocation mémoire échouée\n");
-    exit(MEMORY_FAILURE);
-  }
-  liste[0] = v1;
-  return liste;
-}
-
-variable **ajouter_var_liste(variable **liste, unsigned taille, variable *var) {
-  liste = (variable **)realloc(liste, taille * sizeof(variable *));
-  if (liste == NULL) {  // Échec de l'allocation, gérer l'erreur
-    fprintf(stderr, "Allocation mémoire échouée\n");
-    exit(MEMORY_FAILURE);
-  }
-  liste[taille - 1] = var;
-  return liste;
-}
-
 void delete_var(variable *var) {
   if (var->type == MATRIX) {
     delete_matrix(var->val.matrix);
   }
   if (var) free(var);
+}
+
+Liste_Tuple_Declaration creer_liste_tuple_declaration(Tuple_Declaration t) {
+  Tuple_Declaration *td =
+      (Tuple_Declaration *)malloc(sizeof(Tuple_Declaration));
+  if (td == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
+  *td = t;
+  return (Liste_Tuple_Declaration){td, 1};
+}
+
+Liste_Tuple_Declaration ajouter_tuple(Liste_Tuple_Declaration liste,
+                                      Tuple_Declaration t) {
+  Tuple_Declaration *td = (Tuple_Declaration *)malloc(
+      sizeof(Tuple_Declaration) * (liste.taille + 1));
+  if (td == NULL) {  // Échec de l'allocation, gérer l'erreur
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
+  for (unsigned i = 0; i < liste.taille; i++) {
+    td[i] = liste.liste[i];
+  }
+  td[liste.taille] = t;
+  free(liste.liste);
+  return (Liste_Tuple_Declaration){td, liste.taille + 1};
 }

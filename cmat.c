@@ -27,10 +27,15 @@ int main() {
           printf("%s: .word %d\n", s.name,
                  (s.var->init ? s.var->val.entier : 0));
           break;
+          // y a un s.var->val.entier pas à zéro
+          // d'où ça vient ? de toute façon on va tout init à zéro puis affecter
+          // donc la fuite va disparaitre
+
         case FLOAT:
           printf("%s: .float %f\n", s.name,
                  (s.var->init ? s.var->val.flottant : 0));
           break;
+
         case MATRIX:
           printf("%s:\n", s.name);
           for (unsigned i = 0; i < s.var->val.matrix->l; i++) {
@@ -46,6 +51,7 @@ int main() {
           printf("%s_rows: .word %d\n", s.name, s.var->val.matrix->l);
           printf("%s_cols: .word %d\n", s.name, s.var->val.matrix->c);
           break;
+
         default:
           break;
       }

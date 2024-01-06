@@ -29,14 +29,16 @@ typedef struct _quad {
     B_NOT_EQUAL,
     DEBUT_BLOC,
     FIN_BLOC,
-
     DEBUT_IF,
     FIN_IF,
     JUMP_FIN_IF,
     DEBUT_WHILE,
     FIN_WHILE,
-    JUMP_DEBUT_WHILE
-    // LABEL
+    JUMP_DEBUT_WHILE,
+    DEBUT_FOR,
+    FIN_FOR,
+    JUMP_DEBUT_FOR,
+    JUMP_MAJ_FOR,
   } kind;
   Symbol *sym1;
   Symbol *sym2;
@@ -59,16 +61,5 @@ Symbol *newtemp(SymTable *t, unsigned type, valeur v);
 void code_dump(Code *c);
 
 void code_free(Code *c);
-/*
-typedef struct _liste_quad {
-  unsigned int taille;
-  quad *liste;
-} Quad_List;
 
-Quad_List crelist(Quad *q);
-
-Quad_List concat(Quad_List q1, Quad_List q2);
-
-void complete(Quad_List q, unsigned int nextquad);
-*/
 #endif

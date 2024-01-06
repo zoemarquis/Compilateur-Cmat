@@ -58,7 +58,7 @@ Symbol *newtemp(SymTable *t, unsigned type, valeur val) {
   Symbol *s;
   name_t name;
   sprintf(name, "t%d", t->temporary);
-  variable *v = creer_variable(name, type, false, val);
+  variable *v = creer_variable(name, type, true, val);
   s = symtable_put(t, name, v);
   ++(t->temporary);
   return s;
@@ -81,7 +81,7 @@ static void symbol_dump(Symbol *s) {
 }
 
 static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
-                      Quad *q) {
+                      Stack *pile_for, Quad *q) {
   unsigned type1, type2;
   switch (q->kind) {
     case DEBUT_BLOC:
@@ -111,21 +111,36 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
     case DEBUT_WHILE:
       printf("while_%d:\n", cpt_ctrl);
-      /*
-      printf("\tli $t0, 0\n");
-       printf("\tsw $t0, %s\n", q->sym1->name);
-       */
       push(pile_while, cpt_ctrl);
       cpt_ctrl++;
       break;
 
     case FIN_WHILE:
-      // printf("\tlw $t0, %s\n", q->sym1->name);
       printf("\tbeqz $t0, fin_bloc_%d\n", cpt_bloc);
       break;
 
     case JUMP_DEBUT_WHILE:
       printf("j while_%d\n", pop(pile_while));
+      break;
+
+    case DEBUT_FOR:
+      printf("for_%d:\n", cpt_ctrl);
+      push(pile_for, cpt_ctrl);
+      cpt_ctrl++;
+      break;
+
+    case FIN_FOR:
+      printf("\tbeqz $t0, fin_bloc_%d\n", cpt_bloc);  // si faux : fin
+      printf("\tj debut_bloc_%d\n", cpt_bloc);        // si vrai : dans bloc
+      printf("\tfor_maj_%d:\n", cpt_bloc);
+      break;
+
+    case JUMP_DEBUT_FOR:
+      printf("j for_%d\n", pop(pile_for));
+      break;
+
+    case JUMP_MAJ_FOR:
+      printf("j for_maj_%d\n", top(pile_bloc));
       break;
 
     case COPY:
@@ -139,7 +154,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr, "Incompatibilité de types à l'affectation de %s.\n",
                   q->sym1->name);
           exit(1);
-        }
+        }  // plutot un assert ?
         printf("\tsw $t0,%s\n", q->sym1->name);
       }
 
@@ -572,6 +587,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("\tadd $t6, $t6, $t5\n");
       printf("\tlw $t7, 0($t6)\n");
       printf("\tmtc1 $t7, $f12\n");
+      // cvt ?
 
       printf("\tli $v0, 2\n");
       printf("\tsyscall\n");
@@ -660,11 +676,6 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("\txori $t0, $t0, 1\n");  // not = xor 1
       printf("\tsw $t0, %s\n", q->sym1->name);
       break;
-      /*
-              case LABEL:
-            printf("nextquad_%ld:\n", c->nextquad);
-            break;
-            */
 
     case B_LT:
       switch (q->sym2->kind) {
@@ -1043,7 +1054,6 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tl.s $f1, %s\n", q->sym3->name);
         printf("\tc.eq.s $f0, $f1\n");
         printf("\tbc1f, false_%d\n", cpt_label);
-        // !
       } else if (type1 == FLOAT && type2 == INT) {
         printf("\tl.s $f0, %s\n", q->sym2->name);
         printf("\tlw $t0, %s\n", q->sym3->name);
@@ -1168,15 +1178,15 @@ void code_dump(Code *c) {
   Stack *pile_bloc = createStack(MAX_SIZE);
   Stack *pile_if = createStack(MAX_SIZE);
   Stack *pile_while = createStack(MAX_SIZE);
-  // Stack *pile_for = createStack(MAX_SIZE);
+  Stack *pile_for = createStack(MAX_SIZE);
 
   for (i = 0; i < c->nextquad; i++) {
-    quad_dump(pile_bloc, pile_if, pile_while, &(c->quads[i]));
+    quad_dump(pile_bloc, pile_if, pile_while, pile_for, &(c->quads[i]));
   }
   freeStack(pile_bloc);
   freeStack(pile_if);
   freeStack(pile_while);
-  // freeStack(pile_for);
+  freeStack(pile_for);
 
   printf("# exit\n");
   printf("\tli $v0,10\n");
@@ -1187,33 +1197,3 @@ void code_free(Code *c) {
   free(c->quads);
   free(c);
 }
-
-/*
-Quad_List crelist(Quad *q) {
-  Quad *ql = (Quad *)malloc(sizeof(Quad));
-  ql = q;
-  return (Quad_List){1, ql};
-}
-
-Quad_List concat(Quad_List q1, Quad_List q2) {
-  Quad *ql = (Quad *)malloc(sizeof(Quad) * (q1.taille + q2.taille));
-  if (ql == NULL) {  // Échec de l'allocation, gérer l'erreur
-    fprintf(stderr, "Allocation mémoire échouée\n");
-    exit(MEMORY_FAILURE);
-  }
-  for (unsigned i = 0; i < q1.taille; i++) {
-    ql = q1.liste[i];
-  }
-  for (unsigned i = 0; i < q2.taille; i++) {
-    ql = q2.liste[i];
-  }
-  return (Quad_List){q1.taille + q2.taille, ql};
-}
-
-void complete(Quad_List q, unsigned int nextquad) {
-  for (int i = 0; i < q.taille; i++) {
-    // dans le quad y a un attribut qui porte
-    // q->num = nextquad;
-  }
-}
-*/

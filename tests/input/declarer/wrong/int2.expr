@@ -1,0 +1,16 @@
+int main() {
+  /*
+  int a = {1, 2};
+  print(a);
+  */
+
+  /*
+   float a = {1, 2};
+   print(a);
+   */
+
+  /*
+  matrix a = {1, 2};
+  printmat(a);
+  */
+}

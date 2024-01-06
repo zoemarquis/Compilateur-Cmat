@@ -1,0 +1,16 @@
+int main() {
+/*
+  
+  matrix B[4][5];
+  matrix C[4] = {1,2,3,4,5};
+  matrix D[2][3] = {{1,2,3},{9,8,7}};
+
+  printmat(C);
+  printmat(D);
+  */
+
+  matrix Z[2] = {3,9}, U[2] = {21,10}, P[2][1];
+  printmat(Z);
+  printmat(U);
+  /*printmat(P);*/
+}

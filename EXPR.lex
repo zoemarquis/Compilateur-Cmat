@@ -3,6 +3,8 @@
     #include "symbtab.h"
     #include "EXPR.tab.h"
     #include "error.h"
+
+    unsigned nb_ligne = 1;
 %}
 
 %option nounput
@@ -28,8 +30,6 @@ STRING \"([^"])*\"
 "return"                                    { return RETURN;}
 "exit"                                      { return EXIT; }
 
-"static"                                    { return STATIC;}
-"const"                                     { return CONST;}
 "if"                                        { return IF;}
 "else"                                      { return ELSE;}
 "while"                                     { return WHILE;}
@@ -79,7 +79,7 @@ STRING \"([^"])*\"
                                                     exit(MEMORY_FAILURE);
                                                 }
                                                 return V_STRING;}
-\r|\n                                       {/*nb_ligne = nb_ligne +1;*/}
+\r|\n                                       {nb_ligne = nb_ligne +1;}
 {COMMENT}                                   { /*Ne rien faire*/; }
 {SINGLECOMMENT}                             { /*Ne rien faire*/; }
 [[:space:]]                                 { /*Ne rien faire*/; }

@@ -21,11 +21,6 @@ typedef struct _var {
   valeur val;
 } variable;
 
-typedef struct _liste_var {
-  variable **liste;
-  unsigned taille;
-} Liste_Variable;
-
 typedef struct _extract {
   int *liste;
   unsigned int taille;
@@ -55,6 +50,16 @@ typedef struct _symtable {
   unsigned int size;
   Symbol *symbols;
 } SymTable;
+
+typedef struct _tuple_declaration {
+  variable *gauche;  // la variable entrain de se faire déclarer
+  Symbol *droite;    // résultat de l'expression ou matrix_litt
+} Tuple_Declaration;
+
+typedef struct _liste_tuple_decla {
+  Tuple_Declaration *liste;
+  unsigned taille;
+} Liste_Tuple_Declaration;
 
 SymTable *symtable_new();
 
@@ -88,9 +93,17 @@ Extract concat_extract_liste(Extract e1, Extract e2);
 
 variable *creer_variable(name_t name, unsigned type, bool init, valeur val);
 
+Liste_Tuple_Declaration creer_liste_tuple_declaration(Tuple_Declaration t);
+
+Liste_Tuple_Declaration ajouter_tuple(Liste_Tuple_Declaration liste,
+                                      Tuple_Declaration t);
+
+/*
 variable **creer_var_liste(variable *v1);
 
-variable **ajouter_var_liste(variable **liste, unsigned taille, variable *var);
+variable **ajouter_var_liste(variable **liste, unsigned taille, variable
+*var);
+*/
 
 void delete_var(variable *var);
 

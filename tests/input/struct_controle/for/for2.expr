@@ -1,0 +1,29 @@
+int main() {
+  int i;
+  int jj;
+
+  for (i = 0; i < 10; i = i + 1) {
+    print(i);
+    printf("\n");
+    for (jj = 10; jj < 10; jj = jj + 1) {
+      print(jj);
+      printf("\n");
+    }
+  }
+
+  printf("sortie de boucle : i = ");
+  print(i);
+  printf("\n");
+
+  /* erreur : boucle à l'infini
+    for (i = 0; i < 10; i = i + 1) {
+      print(i);
+      printf("\n");
+      for (jj = 10; jj < 10; jj = jj + 1) {
+        print(jj);
+        printf("\n");
+      }
+      i = 0;
+    }
+    */
+}

@@ -1,0 +1,22 @@
+int main() {
+  int i;
+  int jj;
+
+  for (i = 0; i < 10; jj = i + 1) {
+    print(i);
+    printf("\n");
+    for (jj = 10; jj < 10; jj = jj + 1) {
+      print(jj);
+      printf("\n");
+    }
+  }
+
+  printf("sortie de boucle : i = ");
+  print(i);
+  printf("\n");
+
+  /* erreur : l'itérateur init dans la partie 1 du for doit etre le meme que
+    l'itérateur mis à jour dans la 3eme partie
+    }
+    */
+}
