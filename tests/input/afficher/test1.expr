@@ -1,0 +1,5 @@
+int main(){
+    /* erreur pas déclarée */
+    print(a);
+    return 0;
+}

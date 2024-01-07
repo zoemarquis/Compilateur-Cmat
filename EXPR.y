@@ -46,7 +46,7 @@
 %type<intval> taille 
 %type<floatval> valeur_matrix
 %type<matrix> init_matrix liste_matrix_ligne matrix_une_ligne matrix_remplir_colonne 
-%type <exprval> expr expr_bool matrix_litt
+%type <exprval> expr expr_bool matrix_litt retour
 %type <variable> affectation init_for
 %type<liste_extract> extraction intervalle
 
@@ -118,8 +118,40 @@ def_constante
   ;
 
 fonction_principale 
-  : INT fc_main LPAR RPAR debut_bloc suite_instructions fin_bloc 
+  : INT fc_main LPAR RPAR LCURLY suite_instructions retour RCURLY 
+    {
+      // vérifier que type de retour est int
+      unsigned type1;
+
+      switch($7.ptr->kind){
+        case(NAME):
+          assert($7.ptr->var->init);
+          type1 = $7.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+
+      if (type1 != INT){
+        fprintf(stderr,"Ligne %d : Incompatibilité de type de la fonction return.\n",nb_ligne);
+        exit(1);
+        break;
+      }
+
+      // gencode ?
+    }
   ; 
+// transformer LPAR RPAR en début_main et fin_main ?
+// il faut que fonction -> ID empile la chaine de caracteres correspondant à main
+// ou juste le nom de la fonction actuelle
 
 fc_main
   : MAIN 
@@ -130,19 +162,6 @@ fc_main
     }
   ;
 
-debut_bloc
-  : LCURLY 
-  {
-    gencode(CODE, DEBUT_BLOC, NULL, NULL, NULL);
-  }
-  ;
-
-fin_bloc 
-  : RCURLY
-  {
-    gencode(CODE, FIN_BLOC, NULL, NULL, NULL);
-  }
-  ;
 
 /*
 struct_controle 
@@ -693,7 +712,33 @@ valeur_matrix
     ;
 
 afficher 
-  : PRINT LPAR ID RPAR {
+  : PRINT LPAR expr RPAR 
+    {
+      unsigned type1;
+
+      switch($3.ptr->kind){
+        case(NAME):
+          assert($3.ptr->var->init);
+          type1 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : La fonction print ne peut qu'afficher des expressions correspondantes à des INT ou des FLOAT.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+
+      if (type1 != INT && type1 != FLOAT){
+        fprintf(stderr,"Ligne %d : La fonction print ne peut qu'afficher des expressions correspondantes à des INT ou des FLOAT.\n",nb_ligne);
+        exit(1);
+      }
+
+    /*
     Symbol * id = symtable_get(SYMTAB,$3);
     if (id == NULL) {
       fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée, elle ne peut donc pas être affichée.\n",nb_ligne,$3);
@@ -705,10 +750,14 @@ afficher
       fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être affichée.\n",nb_ligne,$3);
       exit(1);
     }
-    gencode(CODE,CALL_PRINT,id,NULL,NULL);
+    */
+      gencode(CODE,CALL_PRINT,$3.ptr,NULL,NULL);
   }
 
-  | PRINTMAT LPAR ID RPAR {
+  | PRINTMAT LPAR expr RPAR 
+    {
+
+    /*
     Symbol * id = symtable_get(SYMTAB,$3);
     if (id == NULL) {
       fprintf(stderr,"Ligne %d : La matrice '%s' n'a jamais été déclarée, elle ne peut donc pas être affichée.\n",nb_ligne,$3);
@@ -721,6 +770,27 @@ afficher
       exit(1);
     }
     gencode(CODE,CALL_PRINTMAT,id,NULL,NULL);
+  }
+  */
+      unsigned type1;
+
+      switch($3.ptr->kind){
+        case(NAME):
+          assert($3.ptr->var->init);
+          type1 = $3.ptr->var->type;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : La fonction printmat ne peut qu'afficher des expressions correspondantes à des MATRIX.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+
+      if (type1 != MATRIX){
+        fprintf(stderr,"Ligne %d : La fonction printmat ne peut qu'afficher des expressions correspondantes à des MATRIX.\n",nb_ligne);
+        exit(1);
+      }
+
+      gencode(CODE,CALL_PRINTMAT,$3.ptr,NULL,NULL);
   }
 
   | PRINTF LPAR V_STRING RPAR {
@@ -1435,6 +1505,20 @@ expr_bool
     }
   ;
 
+debut_bloc
+  : LCURLY 
+  {
+    gencode(CODE, DEBUT_BLOC, NULL, NULL, NULL);
+  }
+  ;
+
+fin_bloc 
+  : RCURLY
+  {
+    gencode(CODE, FIN_BLOC, NULL, NULL, NULL);
+  }
+  ;
+
 evaluation_if
   : LPAR expr_bool RPAR 
   {
@@ -1581,11 +1665,61 @@ bloc
   ;
 
 
-/*
+// pour l'instant return à la fin seulement, interdit dans les structures
 retour 
-  : RETURN V_INT 
+  : RETURN expr SEMICOLON
+    {
+      // vérifier que c'est soit un int ou un float
+      unsigned type1;
+
+      switch($2.ptr->kind){
+        case(NAME):
+          assert($2.ptr->var->init);
+          type1 = $2.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+
+      $$ = $2;
+
+      // gencode ?
+    }
+  | RETURN LPAR expr RPAR SEMICOLON
+    {
+      // vérifier que c'est soit un int ou un float
+      unsigned type1;
+
+      switch($3.ptr->kind){
+        case(NAME):
+          assert($3.ptr->var->init);
+          type1 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+
+      $$ = $3;
+
+      // gencode ?
+    }
   ;
-*/
 
 %%
 

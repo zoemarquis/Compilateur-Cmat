@@ -1,0 +1,6 @@
+int main() {
+  /* syntax error, pas de règle pour printf autre chose que des string */
+  int a = 1;
+  printf(a);
+  return 0;
+}

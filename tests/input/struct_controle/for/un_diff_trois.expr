@@ -2,6 +2,8 @@ int main() {
   int i;
   int jj;
 
+  /* erreur : itérateur doit etre le meme dans la partie un et trois du for */
+
   for (i = 0; i < 10; jj = i + 1) {
     print(i);
     printf("\n");
@@ -15,8 +17,5 @@ int main() {
   print(i);
   printf("\n");
 
-  /* erreur : l'itérateur init dans la partie 1 du for doit etre le meme que
-    l'itérateur mis à jour dans la 3eme partie
-    }
-    */
+  return 0;
 }

@@ -16,13 +16,5 @@ int main() {
   print(jj);
   printf("\n");
 
-  /* erreur : incompatibilité de type
-    while (i < 10) {
-    for (jj = 0; jj < 3; jj = jj + 1.5) {
-      print(jj);
-      printf("\n");
-    }
-    i = i + 1;
-  }
-    */
+  return 0;
 }

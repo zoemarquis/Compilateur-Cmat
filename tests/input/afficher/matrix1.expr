@@ -1,4 +1,5 @@
 int main(){
     matrix A[3] = {1,2,3};
     printmat(A);
+    return 0;
 }

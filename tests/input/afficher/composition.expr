@@ -8,5 +8,7 @@ int main() {
     printmat(B);
     printf("et X= ");
     printmat(X);
-    printf("truc");
+    printf("\n");
+
+    return 0;
 }

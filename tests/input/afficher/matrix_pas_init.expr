@@ -1,0 +1,6 @@
+int main() {
+  /*erreur : matrix pas init*/
+  matrix B[3][2];
+  printmat(B);
+  return 0;
+}

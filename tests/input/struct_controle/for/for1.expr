@@ -1,11 +1,14 @@
+const int MAX = 10;
+
 int main(){
 
     int i;
     int jj;
 
-    for (i = 0; i<10; i=i+1){
+    for (i = 0; i<MAX; i=i+1){
         print(i);
         printf("\n");
     }
 
+    return 0;
 }

@@ -1,4 +1,0 @@
-int main(){
-    matrix a;
-    print(a);
-}

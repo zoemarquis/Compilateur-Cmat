@@ -1,0 +1,6 @@
+int main(){
+    /* erreur pas init */
+    int a;
+    print(a);
+    return 0;
+}

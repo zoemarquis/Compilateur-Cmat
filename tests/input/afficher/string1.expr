@@ -1,0 +1,4 @@
+int main(){
+    printf("La solution de l'équation AX=B, avec A = \n");
+    return 0;
+}

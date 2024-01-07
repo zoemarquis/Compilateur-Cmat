@@ -1,0 +1,4 @@
+int main() {
+  print(8.3 + 0.7);
+  return 0;
+}

@@ -1,0 +1,10 @@
+const int A = 1;
+const float B = 1.5;
+
+int main(){
+    print(A);
+    printf("\n");
+    print(B);
+    printf("\n");
+    return 0;
+}

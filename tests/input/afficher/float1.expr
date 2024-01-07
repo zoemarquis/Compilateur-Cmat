@@ -1,4 +1,5 @@
 int main(){
     float a = 4.2;
     print(a);
+    return 0;
 }

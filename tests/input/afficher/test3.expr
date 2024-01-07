@@ -1,0 +1,6 @@
+int main(){
+    /* erreur de type */
+    matrix a[1] = {1};
+    print(a);
+    return 0;
+}
