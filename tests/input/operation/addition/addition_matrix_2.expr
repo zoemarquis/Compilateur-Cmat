@@ -1,39 +1,46 @@
 int main() {
-  matrix anne[2] = {1, 2};
-  matrix bob[2] = {3, 4};
+  matrix a[2] = {1, 2};
+  matrix b[2] = {3, 4};
   float f = 6.7;
   int i = 3;
 
-  matrix singe[2];
-  singe = bob + 3;
+  matrix s[2] = b + 3;
 
-  printf("singe : ");
-  printmat(singe);
+  printf("s : ");
+  printmat(s);
+  printf("\n");
 
-  matrix vache[2];
-  vache = i + bob;
+  matrix v[2] = i + b;
 
-  printf("vache : ");
-  printmat(vache);
+  printf("v : ");
+  printmat(v);
+  printf("\n");
 
-  matrix cochon[2];
-  cochon = bob + f;
+  matrix c[2] = b + f;
 
-  printf("cochon : ");
-  printmat(cochon);
+  printf("c : ");
+  printmat(c);
+  printf("\n");
 
-  matrix coq[2];
-  coq = bob + f + anne + i + 1;
+  matrix d[2] = b + f + a + i + 1;
 
-  printf("coq : ");
-  printmat(coq);
+  printf("d : ");
+  printmat(d);
+  printf("\n");
 
-  matrix elephant[3][2] = {{4, 2}, {3, 2}, {1, 2}};
-  matrix girafe[3][2] = {{1, 1}, {2, 2}, {4, 3}};
+  matrix e[3][2] = {{4, 2}, {3, 2}, {1, 2}};
+  matrix g[3][2] = {{1, 1}, {2, 2}, {4, 3}};
 
-  matrix hippo[3][2];
-  hippo = elephant + f + girafe + i + 1;
+  matrix j[3][2] = e + g;
+  printf("j : ");
+  printmat(j);
+  printf("\n");
 
-  printf("hippo : ");
-  printmat(hippo);
+  matrix h[3][2] = e + f + g + i + 1;
+
+  printf("h : ");
+  printmat(h);
+  printf("\n");
+
+  return 0;
 }

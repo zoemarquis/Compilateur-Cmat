@@ -1,29 +1,26 @@
 int main(){
-    float anne = 1;
-    float bob = 2;
-    
-    float corentin ;
-    corentin = 5.6;
-    print(corentin);
-    printf("    ");
+    float a = 1;
+    float b = 2;
+    float c = 5.6;
+    float d = 3;
+    float e = 8.9 + b;
+    float f = 2.5 + 9.1;
+    float g = 2.5 + b + 9.1 + a + c;
 
-    float dorian ;
-    dorian = 3;
-    print(dorian);
-    printf("    ");
+    print(c);
+    printf("\n");
 
-    float edouard;
-    edouard = 8.9 + bob;
-    print(edouard);
-    printf("    ");
+    print(d);
+    printf("\n");
 
-    float felix;
-    felix = 2.5 + 9.1;
-    print(felix);
-    printf("    ");
+    print(e);
+    printf("\n");
 
-    float goeland;
-    goeland = 2.5 + bob + 9.1 + anne + corentin;
-    print(goeland);
-    printf("    ");
+    print(f);
+    printf("\n");
+
+    print(g);
+    printf("\n");
+
+    return 0;
 }

@@ -1,0 +1,132 @@
+.data
+newline: .asciiz "\n"
+tab: .asciiz "\t"
+globalA: .word 3
+maincint1: .word 2
+maint0: .word 0
+maina: .word 0
+mainstr1: .asciiz "\n"
+maincflt1: .float 2.500000
+maint1: .float 0.0
+mainb: .float 0.0
+mainstr2: .asciiz "\n"
+maint2:
+	.float	1.000000,	1.000000
+	.float	1.000000,	1.000000
+maint2_rows: .word 2
+maint2_cols: .word 2
+mainc:
+	.float	0.000000,	0.000000
+	.float	0.000000,	0.000000
+mainc_rows: .word 2
+mainc_cols: .word 2
+maint3:
+	.float	0.000000,	0.000000
+	.float	0.000000,	0.000000
+maint3_rows: .word 2
+maint3_cols: .word 2
+mainstr3: .asciiz "\n"
+maincint2: .word 0
+	.text
+main: 
+	lw $t0, globalA
+	lw $t1, maincint1
+	add $t0,$t0,$t1
+	sw $t0, maint0
+	lw $t0, maint0
+	sw $t0,maina
+	li $v0,1
+	lw $a0, maina
+	syscall
+	li $v0, 4
+	la $a0, mainstr1
+	syscall
+	lw $t0, globalA
+	l.s $f1, maincflt1
+mtc1 $t0, $f0
+cvt.s.w $f0, $f0
+	add.s $f2,$f0,$f1
+	s.s $f2, maint1
+	l.s $f0, maint1
+	s.s $f0, mainb
+	li $v0,2
+	lwc1 $f12, mainb
+	syscall
+	li $v0, 4
+	la $a0, mainstr2
+	syscall
+	la $a0, maint2
+	la $a1, mainc
+	lw $t2, mainc_rows
+	lw $t3, mainc_cols
+	li $t0, 0
+boucle_copy_matrices_ligne_0:
+	bge $t0, $t2, fin_copy_0
+	li $t1, 0
+	boucle_copy_matrices_colonne_0:
+		bge $t1, $t3, ligne_suivante_0
+		l.s $f0, 0($a0)
+		s.s $f0, 0($a1)
+		addi $a0, $a0, 4
+		addi $a1, $a1, 4
+		addi $t1, $t1, 1
+		j boucle_copy_matrices_colonne_0
+	ligne_suivante_0:
+		addi $t0, $t0, 1
+		j boucle_copy_matrices_ligne_0
+fin_copy_0:
+	la $a0, mainc
+	lwc1 $f1, globalA
+	cvt.s.w $f1, $f1
+	la $a1, maint3
+	lw $t2, mainc_rows
+	lw $t3, mainc_cols
+	li $t4, 0
+boucle_add_matrice_cst_ligne_1:
+	bge $t4, $t2, fin_add_1
+	li $t5, 0
+	boucle_add_matrice_cst_colonne_1:
+		bge $t5, $t3, ligne_suivante_1
+		lwc1 $f2, 0($a0)
+		add.s $f3, $f2, $f1
+		swc1 $f3, 0($a1)
+		addi $a0, $a0, 4
+		addi $a1, $a1, 4
+		addi $t5, $t5, 1
+		j boucle_add_matrice_cst_colonne_1
+	ligne_suivante_1:
+		addi $t4, $t4, 1
+		j boucle_add_matrice_cst_ligne_1
+fin_add_1:
+	lw $t0, maint3_rows
+	lw $t1, maint3_cols
+	li $t2, 0
+boucle_afficher_matrix_maint3_ligne_2:
+	li $t3, 0
+boucle_afficher_matrix_maint3_colonne_2:
+	mul $t4, $t2, $t1
+	add $t5, $t4, $t3
+	la $t6, maint3
+	mul $t5, $t5, 4
+	add $t6, $t6, $t5
+	lw $t7, 0($t6)
+	mtc1 $t7, $f12
+	li $v0, 2
+	syscall
+	li $v0, 4
+	la $a0, tab
+	syscall
+	addi $t3, $t3, 1
+	bne $t3, $t1, boucle_afficher_matrix_maint3_colonne_2
+	li $v0, 4
+	la $a0, newline
+	syscall
+	addi $t2, $t2, 1
+	bne $t2, $t0, boucle_afficher_matrix_maint3_ligne_2
+	li $v0, 4
+	la $a0, mainstr3
+	syscall
+exit: 
+# exit
+	li $v0,10
+	syscall

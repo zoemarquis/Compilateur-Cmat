@@ -1,30 +1,29 @@
 int main(){
-    int anne = 1;
-    int bob = 2;
+    int a = 1;
+    int b = 2;
 
-    float coco = 1.1;
-    float donuts = 2;
+    float c = 1.1;
+    float d = 2;
+    float e = c + d;
+    float f = a + b ;
+    float g = a + c + 5.6 ;
+
+    printf("e :");
+    print(e);
+    printf("\n");
     
-    float epinard;
-    epinard = coco + donuts;
-    printf("epinard :");
-    print(epinard);
-    printf("   ");
+    printf("f :");
+    print(f);
+    printf("\n");
 
-    float fromage;
-    fromage = anne + bob ;
-    printf("fromage :");
-    print(fromage);
-    printf("   ");
+    printf("g :");
+    print(g);
+    printf("\n");
 
-    float gruyere;
-    gruyere = anne + coco + 5.6 ;
-    printf("gruyere :");
-    print(gruyere);
-    printf("   ");
+    g = 5.4 + 10 + g;
+    printf("g :");
+    print(g);
+    printf("\n");
 
-    gruyere = 5.4 + 10 + gruyere;
-    printf("gruyere :");
-    print(gruyere);
-    printf("   ");
+    return 0;
 }

@@ -1,43 +1,36 @@
 int main(){
-    matrix anne[2] = {1,2};
-    matrix bob[2] = {3,4};
+    matrix a[2] = {1,2};
+    matrix b[2] = {3,4};
 
-    matrix chien[2];
-    chien = anne;
+    matrix c[2] = a;
 
-    matrix dodo[2];
-    dodo = anne + bob;
+    matrix d[2] = a + b;
 
-    printf("anne : ");
-    printmat(anne);
+    printf("a : ");
+    printmat(a);
 
-    printf("bob : ");
-    printmat(bob);
+    printf("b : ");
+    printmat(b);
 
-    printf("chien : ");
-    printmat(chien);
+    printf("c : ");
+    printmat(c);
 
-    printf("dodo : ");
-    printmat(dodo);
+    printf("d : ");
+    printmat(d);
 
-    matrix zoe[3][3] = {{1,2,3},{4,5,6},{4,5,7}};
-    matrix charlotte[3][3] = {{3,2,3},{4,5,9},{4,5,7}};
+    matrix z[3][3] = {{1,2,3},{4,5,6},{4,5,7}};
+    matrix e[3][3] = {{3,2,3},{4,5,9},{4,5,7}};
 
-    matrix katia[3][3];
-    katia = zoe + charlotte + zoe;
+    matrix k[3][3] = z + e + z;
 
-    printf("zoé : ");
-    printmat(zoe);
+    printf("z : \n");
+    printmat(z);
 
-    printf("charlotte : ");
-    printmat(charlotte);
+    printf("e : \n");
+    printmat(e);
 
-    printf("katia : ");
-    printmat(katia);
-
-    matrix sabina[2];
-    sabina = bob + 3;
-
-    printf("sabina : ");
-    printmat(sabina);
+    printf("k : \n");
+    printmat(k);
+    
+    return 0;
 }

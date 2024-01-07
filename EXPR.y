@@ -649,6 +649,31 @@ une_var
       $$.gauche = creer_variable($1, MATRIX, true, v);
       $$.droite = $5.ptr;
     }
+  | ID taille ASSIGN expr 
+    { 
+      // vérif que expr est une matrix
+      // et que expr est de bonnes dimensions ?
+
+      Matrix * m = create_matrix(1,$2); 
+      valeur v;
+      v.matrix = m;
+      $$.gauche = creer_variable($1, MATRIX, true, v);
+      $$.droite = $4.ptr;
+      
+    }
+  | ID taille taille ASSIGN expr   
+    { 
+      // vérif que expr est une matrix
+      // et que expr est de bonnes dimensions ?
+      
+      Matrix *m = create_matrix($2,$3);
+      valeur v;
+      v.matrix = m;
+      $$.gauche = creer_variable($1, MATRIX, true, v);
+      $$.droite = $5.ptr;
+      
+    }
+
   ;
 
 taille

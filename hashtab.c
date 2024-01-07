@@ -60,7 +60,7 @@ void print_zone_data() {
             if (current_element == GLOBAL) {
               printf("%s: .float %f\n", s.nom_var_fc, s.var->val.flottant);
             } else {
-              printf("%s: .float 0\n", s.nom_var_fc);
+              printf("%s: .float 0.0\n", s.nom_var_fc);
             }
             break;
 
