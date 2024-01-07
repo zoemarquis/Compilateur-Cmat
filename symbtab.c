@@ -15,7 +15,7 @@ unsigned const_float_num = 1;
 unsigned extract_num = 1;
 unsigned indices_num = 1;
 
-SymTable *symtable_new(const char *fonction) {
+SymTable *symtable_new(char *fonction) {
   SymTable *t = malloc(sizeof(SymTable));
   if (t == NULL) {  // Échec de l'allocation, gérer l'erreur
     fprintf(stderr, "Allocation mémoire échouée\n");
@@ -31,7 +31,34 @@ SymTable *symtable_new(const char *fonction) {
   }
   t->temporary = 0;
   t->size = 0;
+
+  // créer une zone pour param ?
+  t->param = init_param();
   return t;
+}
+
+Parametres *init_param() {
+  Parametres *param = (Parametres *)malloc(sizeof(Parametres));
+  param->liste = NULL;
+  param->nb = 0;
+  return param;
+}
+
+Parametres *add_parametre(Parametres *p, Symbol *s) {
+  Parametres *param = (Parametres *)malloc(sizeof(Parametres));
+  param->liste = (Symbol **)realloc(p->liste, (p->nb + 1) * sizeof(Symbol *));
+  param->liste[p->nb] = s;
+  param->nb = p->nb + 1;
+  free(p);
+  return param;
+}
+
+Symbol *get_parametre(Parametres p, unsigned indice) {
+  if (indice >= p.nb) {
+    fprintf(stderr, "error\n");
+    exit(0);
+  }
+  return p.liste[indice];
 }
 
 static void symtable_grow(SymTable *t) {
@@ -81,13 +108,29 @@ Symbol *symtable_const_float(SymTable *t, float v) {
   }
 }
 
-Symbol *symtable_string(SymTable *t, const char *string) {
+/*
+Symbol *symtable_symtable(SymTable *t, unsigned kind) {
+  if (t->size == t->capacity) symtable_grow(t);
+  Symbol *s = &(t->symbols[t->size]);
+  s->kind = kind;
+  // sprintf(s->name, "%s%d", "symtable", string_num);
+  // string_num++;
+  // s->string = string;
+  // sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
+  s->st = t;
+  ++(t->size);
+  return s;
+}
+*/
+
+Symbol *symtable_string(SymTable *t, char *string) {
   if (t->size == t->capacity) symtable_grow(t);
   Symbol *s = &(t->symbols[t->size]);
   s->kind = STRING;
   sprintf(s->name, "%s%d", "str", string_num);
   string_num++;
   s->string = string;
+  // strcpy(s->string, string);
   sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
   ++(t->size);
   return s;
@@ -117,7 +160,7 @@ Symbol *symtable_indices(SymTable *t, Indices tuple) {
   return s;
 }
 
-Symbol *symtable_get(SymTable *t, const char *id) {
+Symbol *symtable_get(SymTable *t, char *id) {
   unsigned int i;
 
   /*
@@ -147,7 +190,7 @@ Symbol *symtable_get(SymTable *t, const char *id) {
   return NULL;
 }
 
-Symbol *symtable_put(SymTable *t, const char *id, variable *var) {
+Symbol *symtable_put(SymTable *t, char *id, variable *var) {
   // il faudrait assert que symtable_get retourne null
   if (t->size == t->capacity) symtable_grow(t);
   Symbol *s = &(t->symbols[t->size]);
@@ -184,6 +227,12 @@ void symtable_free(SymTable *t) {
       free(t->symbols[i].extr.liste);
     }
   }
+  /*
+  for (i = 0; i < t->param->nb; i++) {
+    free(t->param->liste[i]);
+  }
+  */
+  free(t->param);
   free(t->symbols);
   free(t);
 }

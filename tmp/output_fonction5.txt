@@ -1,0 +1,41 @@
+.data
+newline: .asciiz "\n"
+tab: .asciiz "\t"
+globalA: .word 2
+fonction_1a: .word 0
+maina: .word 0
+maincint1: .word 8
+maint0: .word 0
+maincint2: .word 0
+	.text
+fonction_1:
+
+#depiler
+	lw $t1, 0($sp)	# charger la valeur depuis la pile
+	sw $t1 fonction_1a
+	addi $sp, $sp, 4
+
+	lw $v0, fonction_1a
+	jr $ra
+fonction_2: 
+	lw $v0, globalA
+	jr $ra
+main: 
+
+#empiler
+	lw $t0, maincint1
+	addi $sp, $sp, -4
+	sw $t0, 0($sp)
+
+	jal fonction_1
+	move $t0, $v0
+	sw $t0, maint0
+	lw $t0, maint0
+	sw $t0,maina
+	li $v0,1
+	lw $a0, maina
+	syscall
+exit: 
+# exit
+	li $v0,10
+	syscall

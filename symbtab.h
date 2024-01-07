@@ -36,7 +36,16 @@ typedef struct _tuple {
 } Indices;
 
 typedef struct _symbol {
-  enum { NAME, CONST_INT, CONST_FLOAT, STRING, EXTRACT, INDICES } kind;
+  enum {
+    NAME,
+    CONST_INT,
+    CONST_FLOAT,
+    STRING,
+    EXTRACT,
+    INDICES,
+    FONCTION,
+    PARAMETRE
+  } kind;
   nom_var name;
   nom_var_fonction nom_var_fc;
   union {
@@ -46,14 +55,22 @@ typedef struct _symbol {
     float const_float;
     Extract extr;
     Indices tuple;
+    struct _symtable *st;
+    struct _param *param;
   };
 } Symbol;
+
+typedef struct _param {
+  Symbol **liste;
+  unsigned nb;
+} Parametres;
 
 typedef struct _symtable {
   unsigned int capacity;
   unsigned int temporary;
   unsigned int size;
   Symbol *symbols;
+  Parametres *param;
   nom_fonction nom;
   UT_hash_handle hh;
 } SymTable;
@@ -68,21 +85,21 @@ typedef struct _liste_tuple_decla {
   unsigned taille;
 } Liste_Tuple_Declaration;
 
-SymTable *symtable_new(const char *fonction);
+SymTable *symtable_new(char *fonction);
 
 Symbol *symtable_const_int(SymTable *t, int v);
 
 Symbol *symtable_const_float(SymTable *t, float v);
 
-Symbol *symtable_string(SymTable *t, const char *string);
+Symbol *symtable_string(SymTable *t, char *string);
 
 Symbol *symtable_extract(SymTable *t, Extract extract);
 
 Symbol *symtable_indices(SymTable *t, Indices tuple);
 
-Symbol *symtable_get(SymTable *t, const char *s);
+Symbol *symtable_get(SymTable *t, char *s);
 
-Symbol *symtable_put(SymTable *t, const char *id, variable *var);
+Symbol *symtable_put(SymTable *t, char *id, variable *var);
 
 void symtable_dump(SymTable *t);
 
@@ -113,5 +130,12 @@ variable **ajouter_var_liste(variable **liste, unsigned taille, variable
 */
 
 void delete_var(variable *var);
+
+// Paramètres
+Parametres *add_parametre(Parametres *p, Symbol *s);
+
+Symbol *get_parametre(Parametres p, unsigned indice);
+
+Parametres *init_param();
 
 #endif

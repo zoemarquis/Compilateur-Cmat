@@ -1,0 +1,24 @@
+const int A = 20;
+
+int fonction_1(int a) {
+  printf("fonction 1 , a = ");
+  print(a);
+  printf("\n");
+  if (a < A) {
+    printf("vrai\n");
+    a = fonction_1(a + 3);
+  } else {
+    printf("faux\n");
+  }
+  printf("avant return\n");
+  return a;
+}
+
+int main() {
+  int a;
+  a = fonction_1(4);
+  printf("dans main\n");
+  print(a);
+  printf("\n");
+  return 0;
+}

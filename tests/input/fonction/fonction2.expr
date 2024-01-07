@@ -1,0 +1,35 @@
+const int A = 2;
+
+int fonction_1() {
+  int a, b, c;
+  printf("on est dans fonction 1\non affiche la constante A (= 2)\n");
+  print(A);
+  printf("\n");
+  return(A);
+}
+
+
+int fonction_2() {
+  int a, b, c;
+  printf("on est dans fonction 2\non affiche la constante A (= 2)\n");
+  print(A);
+  printf("\n");
+  return(A + 3);
+}
+
+
+int main() {
+  int a, b, c;
+  printf("on appel fonction 1\n");
+  a = fonction_1();
+  printf("de retour dans main\na = fonction_1() qui doit retourner 2\n");
+  print(a);
+  printf("\n");
+  printf("on appel fonction 2\n");
+  a = fonction_2();
+  printf("de retour dans main\na = fonction_2() qui doit retourner 5\n");
+  print(a);
+  printf("\n");
+
+  return 0;
+}

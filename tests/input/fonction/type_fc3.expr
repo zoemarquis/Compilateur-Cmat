@@ -1,0 +1,11 @@
+const float A = 3.5;
+
+float fonction_1(int a) { return (A); }
+
+int main() {
+  float a;
+  a = fonction_1(1);
+  print(a);
+  printf("\n");
+  return 0;
+}

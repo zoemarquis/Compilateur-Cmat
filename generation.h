@@ -27,6 +27,7 @@ typedef struct _quad {
     B_GTOE,
     B_EQUAL,
     B_NOT_EQUAL,
+
     DEBUT_BLOC,
     FIN_BLOC,
     DEBUT_IF,
@@ -39,7 +40,17 @@ typedef struct _quad {
     FIN_FOR,
     JUMP_DEBUT_FOR,
     JUMP_MAJ_FOR,
-    FONCTION,
+
+    LABEL_FC,
+    JAL_FC,
+    JR,
+    RETOUR_FC,
+    MOVE,
+    EMPILER,
+    DEPILER,
+    DEPILER_ADRESSE,
+    RE_EMPILER_ADRESSE,
+
   } kind;
   Symbol *sym1;
   Symbol *sym2;
@@ -62,5 +73,7 @@ Symbol *newtemp(SymTable *t, unsigned type, valeur v);
 void code_dump(Code *c);
 
 void code_free(Code *c);
+
+void add_fonction(nom_fonction fc);
 
 #endif

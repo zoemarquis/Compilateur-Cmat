@@ -4,5 +4,13 @@ const float C = 0.5;
 const float D = -0.5;
 
 int main(){
-    int a = 0, b;
+    print(A);
+    printf("\n");
+    print(B);
+    printf("\n");
+    print(C);
+    printf("\n");
+    print(D);
+    printf("\n");
+    return 0;
 }

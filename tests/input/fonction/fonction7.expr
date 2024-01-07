@@ -1,0 +1,21 @@
+const int A = 2;
+
+int fonction_1(int a, int b, int c) {
+  printf("param 1 :\n");
+  print(a);
+  printf("\nparam 2 :\n");
+  print(b);
+  printf("\nparam 3 :\n");
+  print(c);
+  printf("\n");
+  return a + b + c;
+}
+
+int main() {
+  int a;
+  a = fonction_1(3, 9, 1);
+  printf("retour de fontion_1 : 3 + 9 + 1 = 13\n");
+  print(a);
+  printf("\n");
+  return 0;
+}

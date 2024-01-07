@@ -1,0 +1,15 @@
+const int A = 2;
+
+/* erreur : mauvais nombre de paramètre */
+
+int fonction_1(int a) { return(A); }
+
+int fonction_2() { return(A); }
+
+int main() { 
+    int a;
+    a = fonction_1(1,2);
+    return 0; 
+}
+
+/* erreur pas meme nombre de parametres */

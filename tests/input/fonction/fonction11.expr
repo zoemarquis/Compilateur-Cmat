@@ -1,0 +1,14 @@
+const int A = 1;
+
+int fonction_1() {
+  printf("dans fonction\n");
+  return 0;
+}
+
+int main() {
+  int a, b, c;
+  printf("debut main\n");
+  a = fonction_1();
+  printf("de retour dans main\n");
+  return 0;
+}

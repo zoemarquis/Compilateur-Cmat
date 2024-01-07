@@ -33,7 +33,7 @@ void print_zone_data() {
 
   SymTable *current_element, *tmp;
   HASH_ITER(hh, th, current_element, tmp) {
-    for (int i = 0; i < current_element->size; i++) {
+    for (unsigned int i = 0; i < current_element->size; i++) {
       Symbol s = current_element->symbols[i];
       if (s.kind == NAME) {
         switch (s.var->type) {

@@ -1,0 +1,9 @@
+const float A = 1;
+
+int main() {
+  print(A);
+  printf("\n");
+  return 0;
+}
+
+/* erreur : incompatibilité de type */

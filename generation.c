@@ -5,12 +5,33 @@
 #include <string.h>
 
 #include "EXPR.tab.h"
+#include "cmat.h"
 #include "error.h"
 #include "pile.h"
 
 unsigned cpt_label = 0;
 unsigned cpt_bloc = 0;
 unsigned cpt_ctrl = 0;
+
+unsigned cpt_fonction = 0;
+
+typedef struct {
+  nom_fonction liste[100];
+  unsigned taille;
+} Noms_Fonctions;
+
+Noms_Fonctions noms_fc;
+
+void add_fonction(nom_fonction fc) {
+  strncpy(noms_fc.liste[noms_fc.taille], fc, 16);
+  // noms_fc->liste[noms_fc.taille][15] = '\0`;
+  noms_fc.taille++;
+}
+
+static char *get_fonction(unsigned indice) {
+  assert(indice < noms_fc.taille);
+  return noms_fc.liste[indice];
+}
 
 Code *code_new() {
   Code *r = malloc(sizeof(Code));
@@ -86,8 +107,59 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
                       Stack *pile_for, Quad *q) {
   unsigned type1, type2;
   switch (q->kind) {
-    case FONCTION:
-      printf("main: \n");
+    case LABEL_FC:
+      // besoin de connaitre le nom actuel de la fonction
+      printf("%s: \n", get_fonction(cpt_fonction));
+      cpt_fonction++;
+      break;
+
+    case DEPILER_ADRESSE:
+      printf("\t# pas depiler : lw $ra, 0($sp)\n");
+      printf("\tadd $sp, $sp, 4\n");
+      break;
+
+    case RE_EMPILER_ADRESSE:
+      printf("\taddi $sp, $sp, -4\n");
+      printf("\tsw $ra, 0($sp)\n");
+      break;
+
+    case DEPILER:
+      printf("\tlw $t0, 0($sp)\n");
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
+      printf("\taddi $sp, $sp, 4\n");
+      break;
+
+    case EMPILER:
+      printf("\tlw $t0, %s\n", q->sym1->nom_var_fc);
+      printf("\taddi $sp, $sp, -4\n");
+      printf("\tsw $t0, 0($sp)\n");
+      break;
+
+    case JAL_FC:
+      assert(q->sym1->kind == FONCTION);
+      printf("\taddi $sp, $sp, -4\n");
+      printf("\tsw $ra, 0($sp)\n");
+
+      printf("\tjal %s\n", q->sym1->st->nom);
+      /*printf("\tlw $ra, 4($sp)\n");
+      printf("\tadd $sp, $sp, 4\n");*/
+      break;
+
+    case JR:
+      printf("\tlw $ra, 0($sp)\n");
+      printf("\tadd $sp, $sp, 4\n");
+      printf("\tjr $ra\n");
+      break;
+
+    case RETOUR_FC:
+      // cas de retour de int
+      printf("\tlw $v0, %s\n", q->sym1->nom_var_fc);
+      break;
+
+    case MOVE:
+      // cas de retour de int
+      printf("\tmove $t0, $v0\n");
+      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       break;
 
     case DEBUT_BLOC:
@@ -108,7 +180,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       break;
 
     case JUMP_FIN_IF:
-      printf("j fin_if_%d\n", top(pile_if));
+      printf("\tj fin_if_%d\n", top(pile_if));
       break;
 
     case FIN_IF:

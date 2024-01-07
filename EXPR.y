@@ -4,6 +4,7 @@
   #include "error.h"
   #include "symbtab.h"
   #include "generation.h"
+  #include "hashtab.h"
   #include <stdio.h>// ?
   #include <stdlib.h>// ?
 
@@ -26,6 +27,7 @@
   Matrix* matrix;
   char * string;
   Extract liste_extract;
+  Parametres* liste_parametres;
 }
 
 %token CONST NOT AND OR DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE
@@ -36,19 +38,20 @@
 %token <floatval> V_FLOAT
 %token <string> V_STRING
 
-%left MULT DIV EQUAL NOT_EQUAL
+%left MULT DIV EQUAL NOT_EQUAL OR AND
 %left PLUS MINUS GTOE LTOE GREATER_THAN LESS_THAN
-%nonassoc UMINUS
+%nonassoc UMINUS NOT //LPAR RPAR
 
-%type <type> type_var
+%type <type> type_var type_fonction
 %type<l_var> liste_var
 %type<var> une_var
-%type<intval> taille 
-%type<floatval> valeur_matrix
+%type<intval> taille cste_int 
+%type<floatval> valeur_matrix cste_float
 %type<matrix> init_matrix liste_matrix_ligne matrix_une_ligne matrix_remplir_colonne 
-%type <exprval> expr expr_bool matrix_litt retour
+%type <exprval> expr expr_bool matrix_litt retour_main retour_fc
 %type <variable> affectation init_for
 %type<liste_extract> extraction intervalle
+%type<liste_parametres> liste_param
 
 %start Start
 
@@ -57,68 +60,84 @@
 Start 
   : %empty
   | def_constantes fonction_principale
-  | fonction_principale
-  //| def_constantes fonctions fonction_principale
+  | def_constantes fonction fonction_principale
+  | def_constantes fonction fonction fonction_principale
   ;
 
-def_constantes 
-  : def_constante SEMICOLON
-  | def_constante SEMICOLON def_constantes
+/*
+suite_fonctions
+  : fonction
+  | fonction suite_fonctions
+  ;
+*/
+
+depiler_adresse
+  : LPAR
+    { 
+      gencode(CODE, DEPILER_ADRESSE, NULL, NULL, NULL);
+    }
   ;
 
-def_constante
-  : CONST INT ID ASSIGN V_INT
+re_empiler_adresse
+  : RPAR
     {
-      Symbol * id = symtable_get(GLOBAL,$3);
-      if (id) {
-        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
-        exit(1);
-      }
-      valeur val;
-      val.entier = $5;
-      variable * v = creer_variable($3, INT, true, val);
-      symtable_put(GLOBAL, $3, v);
+      gencode(CODE, RE_EMPILER_ADRESSE, NULL, NULL, NULL);
     }
-  | CONST INT ID ASSIGN MINUS V_INT 
+  ;
+
+type_fonction
+  : INT       { $$ = INT; }
+  | FLOAT     { $$ = FLOAT; }
+  ;
+
+fonction 
+  : type_fonction nom_fonction depiler_adresse def_parametre re_empiler_adresse LCURLY suite_instructions retour_fc RCURLY 
     {
-      Symbol * id = symtable_get(GLOBAL,$3);
-      if (id) {
-        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
-        exit(1);
+      unsigned type1;
+      switch($8.ptr->kind){
+        case(NAME):
+          assert($8.ptr->var->init);
+          type1 = $8.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          exit(1);
+          break;
       }
-      valeur val;
-      val.entier = -$6;
-      variable * v = creer_variable($3, INT, true, val);
-      symtable_put(GLOBAL, $3, v);
+      if ($1 == INT && type1 != INT){
+        fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyée et le type de la fonction.\n",nb_ligne);
+        exit(1);
+        break;
+      }
+      gencode(CODE, JR, NULL, NULL, NULL);
     }
-  | CONST FLOAT ID ASSIGN V_FLOAT 
+  ;
+
+nom_fonction 
+  : ID 
     {
-      Symbol * id = symtable_get(GLOBAL,$3);
-      if (id) {
-        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
+      // vérifier qu'une fonction portant ce nom n'existe pas déjà
+      SymTable * s = get_symtable($1);
+      if (s != NULL){
+        fprintf(stderr,"Ligne %d : Une fonction portant le nom '%s' est déjà déclarée.\n",nb_ligne,$1);
         exit(1);
       }
-      valeur val;
-      val.flottant = $5;
-      variable * v = creer_variable($3, FLOAT, true, val);
-      symtable_put(GLOBAL, $3, v);
-    }
-  | CONST FLOAT ID ASSIGN MINUS V_FLOAT 
-    {
-      Symbol * id = symtable_get(GLOBAL,$3);
-      if (id) {
-        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
-        exit(1);
-      }
-      valeur val;
-      val.flottant = -$6;
-      variable * v = creer_variable($3, FLOAT, true, val);
-      symtable_put(GLOBAL, $3, v);
+      // création de la table des symboles pour cette fonction
+      SYMTAB = symtable_new($1);
+      add_symtable(SYMTAB);
+      add_fonction($1);
+      gencode(CODE, LABEL_FC, NULL, NULL, NULL);
     }
   ;
 
 fonction_principale 
-  : INT fc_main LPAR RPAR LCURLY suite_instructions retour RCURLY 
+  : type_fonction fc_main LPAR RPAR LCURLY suite_instructions retour_main RCURLY 
     {
       // vérifier que type de retour est int
       unsigned type1;
@@ -146,19 +165,18 @@ fonction_principale
         break;
       }
 
-      // gencode ?
     }
   ; 
-// transformer LPAR RPAR en début_main et fin_main ?
-// il faut que fonction -> ID empile la chaine de caracteres correspondant à main
-// ou juste le nom de la fonction actuelle
 
 fc_main
   : MAIN 
     {
+      nom_fonction nf;
+      strncpy(nf,"main",15);
       SYMTAB = symtable_new("main");
       add_symtable(SYMTAB);
-      gencode(CODE, FONCTION, NULL, NULL, NULL);
+      add_fonction(nf);
+      gencode(CODE, LABEL_FC, NULL, NULL, NULL);
     }
   ;
 
@@ -190,6 +208,8 @@ suite_instructions
   | struct_if suite_instructions
   | struct_while suite_instructions
   | struct_for suite_instructions
+
+  | affectation_fonction suite_instructions
   ;
 
 instr 
@@ -198,6 +218,259 @@ instr
   | affectation
   ;
 
+def_parametre 
+  : %empty
+  | parametre
+  | parametre COMMA def_parametre
+  ;
+
+parametre
+  : INT ID 
+    {
+      // ajouter le symbol à la table de la fonction en question
+      // pas init
+      // et il faudra empiler ces parametres
+      
+      // 1. vérifier que ça exite pas déjà
+      Symbol * id = symtable_get(SYMTAB,$2);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La variable '%s' a déjà été déclarée.\n",nb_ligne, $2);
+        exit(1);
+      }
+
+      // 2. créer une entrée dans la table des symboles
+      valeur v;
+      variable * var = creer_variable($2, INT, true, v);
+      Symbol * res = symtable_put(SYMTAB, $2, var);
+      SYMTAB->param = add_parametre(SYMTAB->param, res);
+
+      gencode(CODE, DEPILER, res, NULL, NULL);
+    }
+  ;
+
+affectation_fonction
+  : ID ASSIGN ID LPAR liste_param RPAR SEMICOLON
+    {
+      // sémantique : vérifier que l'id existe
+      Symbol * id = symtable_get(SYMTAB,$1);
+      if ( id == NULL ){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+        exit(1);
+      }
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$1);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
+        exit(1);
+      }
+      unsigned type1, type2;
+
+      type1 = id->var->type;
+
+      // type 2 c'est le type de retour de la fonction
+
+      // 1. chercher fonction ID dans table de hachage
+      SymTable * st = get_symtable($3);
+      if (st == NULL){
+        fprintf(stderr,"Ligne %d : fonction '%s' non déclarée.\n",nb_ligne,$3);
+        exit(1);
+      }
+
+      // 2. vérifier que c'est bien un int
+      // TODO pour l'instant que des int
+
+      /*
+      switch($3.ptr->kind){
+        case(NAME):
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+      */
+
+     // 3. vérifier que il y a le meme nombre de parametres et que ces paramtres sont de meme type
+      Parametres *p_fc = st->param;
+      Parametres *p = $5;
+
+      // même nombre de parametres
+      if (p->nb != p_fc->nb){
+        fprintf(stderr,"Le nombre de parametres à passer à la fonction %s n'est pas le bon.\n", st->nom);
+        exit(1);
+      }
+
+      // même type pour chaque parametre
+      for(int i = (p->nb) -1; i>=0; i--){
+       
+        // TO DELETE
+        fprintf(stderr, "i : %d\n", i);
+        fprintf(stderr,"p : %s\n", p->liste[i]->nom_var_fc);
+        fprintf(stderr,"p_fc : %s\n", p_fc->liste[i]->nom_var_fc);
+
+        switch(p_fc->liste[i]->kind){
+          case(NAME):
+            type1 = p_fc->liste[i]->var->type;
+            break;
+          default:
+            fprintf(stderr,"Ligne %d : something went wrong\n",nb_ligne);
+            exit(1);
+            break;
+        }
+        switch(p->liste[i]->kind){
+          case(NAME):
+            type2 = p_fc->liste[i]->var->type;
+            break;
+          case(CONST_INT):
+            type2 = INT;
+            break;
+          case(CONST_FLOAT):
+            type2 = FLOAT;
+            break;
+          default:
+            fprintf(stderr,"Ligne %d : something went wrong\n",nb_ligne);
+            exit(1);
+            break;
+        }
+
+        if (type1 != type2){
+          fprintf(stderr,"Ligne %d : Erreur de type lors de l'appel à la fonction %s\n",nb_ligne, st->nom);
+          exit(1);
+          break;
+        }
+
+        gencode(CODE, EMPILER, p->liste[i], NULL, NULL);
+      }
+
+      id->var->init = true;
+
+
+      // créer un symbol juste pour avoir le nom d'où on veut jump
+      /*
+      valeur val;
+      Symbol * s1 = symtable_symtable(SYMTAB, FONCTION);
+      s1->kind = FONCTION;
+      */
+      valeur val;
+      Symbol * s1 = newtemp(SYMTAB, 0, val);
+      free(s1->var); // pas besoin de ce qu'il y a dedans
+      s1->kind = FONCTION;
+      s1->st = st;
+      // s1->st = st;
+      /*
+      Symbol * s1 = (Symbol *)malloc(sizeof(Symbol));
+      s1->kind = FONCTION;
+      s1->st = st;
+      */
+
+      gencode(CODE, JAL_FC, s1, NULL, NULL);
+      // free(st);
+
+      valeur val2;
+      Symbol * tmp = newtemp(SYMTAB, INT, val2);
+      gencode(CODE, MOVE, tmp, NULL, NULL); 
+
+      gencode(CODE,COPY,id,tmp,NULL);
+      free(p);
+    }
+
+liste_param 
+  : %empty
+    {
+      $$ = init_param();
+    }
+  | expr 
+    {
+      // TODO : vérif que c'est un int ou un float
+      // nouvelle liste param nb = 1 et juste expr dedans
+      Parametres *p = init_param();
+      $$ = add_parametre(p, $1.ptr);
+    }
+  | liste_param COMMA expr
+    {
+      $$ = add_parametre($1, $3.ptr);
+    }
+  ;
+
+// CONSTANTES  
+def_constantes 
+  : %empty
+  | def_constante SEMICOLON def_constantes
+  ;
+
+cste_int
+  : V_INT 
+    {
+      $$ = $1;
+    }
+  | MINUS V_INT
+    {
+      $$ = -$2;
+    }
+cste_float
+  : V_FLOAT
+    {
+      $$ = $1;
+    }
+  | MINUS V_FLOAT
+    {
+      $$ = -$2;
+    }
+  ;
+
+def_constante
+  : CONST INT ID ASSIGN cste_int
+    {
+      Symbol * id = symtable_get(GLOBAL,$3);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
+        exit(1);
+      }
+      valeur v;
+      v.entier = $5;
+      variable * var = creer_variable($3, INT, true, v);
+      symtable_put(GLOBAL, $3, var);
+    }
+  | CONST FLOAT ID ASSIGN cste_float 
+    {
+      Symbol * id = symtable_get(GLOBAL,$3);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
+        exit(1);
+      }
+      valeur v;
+      v.flottant = $5;
+      variable * var = creer_variable($3, FLOAT, true, v);
+      symtable_put(GLOBAL, $3, var);
+    }
+  | CONST FLOAT ID ASSIGN cste_int
+    {
+      Symbol * id = symtable_get(GLOBAL,$3);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
+        exit(1);
+      }
+      valeur v;
+      v.flottant = $5;
+      variable * var = creer_variable($3, FLOAT, true, v);
+      symtable_put(GLOBAL, $3, var);
+    }
+  | CONST INT ID ASSIGN cste_float
+    {
+      fprintf(stderr,"Ligne %d : Incompatibilité de type à la déclaration de %s.\n",nb_ligne, $3);
+      exit(1);
+    }
+
+  ;
+  
+// AFFECTATION
 affectation
   : ID ASSIGN expr
     {
@@ -449,6 +722,8 @@ affectation
   ;
 
 
+
+// DÉCLARATION
 declaration_variable
   : type_var liste_var {
 
@@ -687,6 +962,7 @@ taille
   }
   ;
 
+// MATRIX
 matrix_litt 
   : init_matrix
     {
@@ -736,6 +1012,7 @@ valeur_matrix
     | V_FLOAT   { $$ = $1; }
     ;
 
+// AFFICHER
 afficher 
   : PRINT LPAR expr RPAR 
     {
@@ -824,87 +1101,88 @@ afficher
     }
   ;
 
+// OPÉRATIONS
 expr
   : expr PLUS expr
-  { 
-    // vérifier compatibilité de type
+    { 
+      // vérifier compatibilité de type
 
-    unsigned type1, type2, type;
-    switch($1.ptr->kind){
-      case(NAME):
-        type1 = $1.ptr->var->type;
-        break;
-      case(CONST_INT):
-        type1 = INT;
-        break;
-      case(CONST_FLOAT):
-        type1 = FLOAT;
-        break;
-      default:
-        fprintf(stderr,"Ligne %d : Erreur de type dans une addition.\n",nb_ligne);
-        exit(1);
-        break;
-    }
-    switch($3.ptr->kind){
-      case(NAME):
-        type2 = $3.ptr->var->type;
-        break;
-      case(CONST_INT):
-        type2 = INT;
-        break;
-      case(CONST_FLOAT):
-        type2 = FLOAT;
-        break;
-      default:
-        fprintf(stderr,"Ligne %d : Erreur de type dans une addition.\n",nb_ligne);
-        exit(1);
-        break;
-    }
-
-    valeur val;
-    if (type1 == MATRIX || type2 == MATRIX) {
-      type = MATRIX;
-
-      // vérifier même tailles si les 2 sont matrices
-      if ((type1 == MATRIX && type2 == MATRIX)&&(($1.ptr->var->val.matrix->l != $3.ptr->var->val.matrix->l) || ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->c))){
-        fprintf(stderr,"Ligne %d : Incompatibilité entre les tailles de matrice lors d'une addition.\n",nb_ligne);
-        exit(1);
+      unsigned type1, type2, type;
+      switch($1.ptr->kind){
+        case(NAME):
+          type1 = $1.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une addition.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+      switch($3.ptr->kind){
+        case(NAME):
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une addition.\n",nb_ligne);
+          exit(1);
+          break;
       }
 
-      // créer une matrix pour la var temporaire
-      if (type1 == MATRIX){
-        Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $1.ptr->var->val.matrix->c);
-        val.matrix = m;
-      } else {
-        Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
-        val.matrix = m;
-      }
-    }
-    else if (type1 == FLOAT || type2 == FLOAT) 
-      type = FLOAT;
-    else 
-      type = INT;
+      valeur val;
+      if (type1 == MATRIX || type2 == MATRIX) {
+        type = MATRIX;
 
-    $$.ptr = newtemp(SYMTAB, type, val);
-    gencode(CODE,BOP_PLUS,$$.ptr,$1.ptr,$3.ptr); 
-  }
+        // vérifier même tailles si les 2 sont matrices
+        if ((type1 == MATRIX && type2 == MATRIX)&&(($1.ptr->var->val.matrix->l != $3.ptr->var->val.matrix->l) || ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->c))){
+          fprintf(stderr,"Ligne %d : Incompatibilité entre les tailles de matrice lors d'une addition.\n",nb_ligne);
+          exit(1);
+        }
+
+        // créer une matrix pour la var temporaire
+        if (type1 == MATRIX){
+          Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $1.ptr->var->val.matrix->c);
+          val.matrix = m;
+        } else {
+          Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
+          val.matrix = m;
+        }
+      }
+      else if (type1 == FLOAT || type2 == FLOAT) 
+        type = FLOAT;
+      else 
+        type = INT;
+
+      $$.ptr = newtemp(SYMTAB, type, val);
+      gencode(CODE,BOP_PLUS,$$.ptr,$1.ptr,$3.ptr); 
+    }
   | LPAR expr RPAR
-  { 
-     $$.ptr = $2.ptr;
-  }
+    { 
+      $$.ptr = $2.ptr;
+    }
   | ID
-  { 
-    Symbol * id = symtable_get(SYMTAB,$1);
-    if (id==NULL){
-        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+    { 
+      Symbol * id = symtable_get(SYMTAB,$1);
+      if (id==NULL){
+          fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+          exit(1);
+      }
+      if (!id->var->init){
+        fprintf(stderr,"1045 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
         exit(1);
+      }
+      $$.ptr = id;
     }
-    if (!id->var->init){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
-      exit(1);
-    }
-    $$.ptr = id;
-  }
   | V_INT
     { 
       $$.ptr = symtable_const_int(SYMTAB,$1); 
@@ -913,6 +1191,7 @@ expr
     { 
       $$.ptr = symtable_const_float(SYMTAB,$1); 
     }
+
   | ID LBRACKET extraction RBRACKET // matrice une dimension
   {
     // TODO : si taille de extraction = 1  (et que c'est pas -1)-> float 
@@ -925,7 +1204,7 @@ expr
     }
 
     if (!id->var->init){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
+      fprintf(stderr,"1071 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
       exit(1);
     }
 
@@ -1007,7 +1286,7 @@ expr
     }
 
     if (!id->var->init){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
+      fprintf(stderr,"1153 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
       exit(1);
     }
 
@@ -1148,7 +1427,9 @@ intervalle
     }
   ;
 
+// STRUCTURES DE CONTROLE
 expr_bool
+  /* règle supprimée à cause de conflits
   : expr 
     {
       unsigned type;
@@ -1173,18 +1454,19 @@ expr_bool
         $$.ptr = newtemp(SYMTAB, INT, val);
         gencode(CODE,B_EVAL,$$.ptr,$1.ptr, NULL);
 
-        /*
-        $$.true = crelist(CODE->nextquad);
-        gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
-        $$.false = crelist(CODE->nextquad);
-        gencode(CODE,GOTO,NULL,NULL,NULL);
-        */
+        
+        //$$.true = crelist(CODE->nextquad);
+        //gencode(CODE,IF_ID_PTR_GOTO,$1.ptr,NULL,NULL);
+        //$$.false = crelist(CODE->nextquad);
+        //gencode(CODE,GOTO,NULL,NULL,NULL);
+        
       } else {
         fprintf(stderr, "Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
         exit(1);
       }
     }
-  | expr_bool OR expr_bool
+    */
+  : expr_bool OR expr_bool
     {
       valeur val;
       $$.ptr = newtemp(SYMTAB, INT, val);
@@ -1537,12 +1819,14 @@ debut_bloc
   }
   ;
 
+/* PAS UTILISÉ
 fin_bloc 
   : RCURLY
   {
     gencode(CODE, FIN_BLOC, NULL, NULL, NULL);
   }
   ;
+*/
 
 evaluation_if
   : LPAR expr_bool RPAR 
@@ -1687,42 +1971,25 @@ bloc
   | struct_if bloc
   | struct_while bloc
   | struct_for bloc
+// TO CHANGE
+  | affectation_fonction bloc
+  
   ;
 
-
-// pour l'instant return à la fin seulement, interdit dans les structures
-retour 
-  : RETURN expr SEMICOLON
-    {
-      // vérifier que c'est soit un int ou un float
-      unsigned type1;
-
-      switch($2.ptr->kind){
-        case(NAME):
-          assert($2.ptr->var->init);
-          type1 = $2.ptr->var->type;
-          break;
-        case(CONST_INT):
-          type1 = INT;
-          break;
-        case(CONST_FLOAT):
-          type1 = FLOAT;
-          break;
-        default:
-          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
-          exit(1);
-          break;
+// RETURN
+retour_fc
+    : RETURN V_INT SEMICOLON
+      {
+        $$.ptr = symtable_const_int(SYMTAB,$2); 
       }
-
-      $$ = $2;
-
-      // gencode ?
-    }
-  | RETURN LPAR expr RPAR SEMICOLON
+    | RETURN V_FLOAT SEMICOLON
+      {
+        $$.ptr = symtable_const_float(SYMTAB,$2); 
+      }
+    | RETURN LPAR expr RPAR SEMICOLON
     {
       // vérifier que c'est soit un int ou un float
       unsigned type1;
-
       switch($3.ptr->kind){
         case(NAME):
           assert($3.ptr->var->init);
@@ -1739,12 +2006,53 @@ retour
           exit(1);
           break;
       }
-
+      if (type1 != INT && type1 != FLOAT){
+        fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+        exit(1);
+        break;
+      }
+      gencode(CODE, RETOUR_FC, $3.ptr, NULL, NULL);
       $$ = $3;
-
-      // gencode ?
     }
   ;
+
+retour_main
+  : RETURN V_INT SEMICOLON
+    {
+      $$.ptr = symtable_const_int(SYMTAB,$2); 
+    }
+  | RETURN V_FLOAT SEMICOLON
+    {
+      $$.ptr = symtable_const_float(SYMTAB,$2); 
+    }
+  | RETURN LPAR expr RPAR SEMICOLON
+    {
+      unsigned type1;
+      switch($3.ptr->kind){
+        case(NAME):
+          assert($3.ptr->var->init);
+          type1 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+      if (type1 != INT){
+        fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyer et le type de la fonction.\n",nb_ligne);
+        exit(1);
+        break;
+      }
+      $$ = $3;
+    }
+  ;
+
 
 %%
 

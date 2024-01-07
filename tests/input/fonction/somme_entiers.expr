@@ -1,0 +1,27 @@
+const int A = 1;
+
+int somme_n_entiers(int a) {
+  printf("dans fonction : a = ");
+  print(a);
+  printf("\n");
+  int b = a;
+  int c = a + 1;
+  if (c <= A) {
+    b = somme_n_entiers(c);
+  } else {
+    b = 0;
+  }
+  print(b);
+  printf("\n");
+  return b;
+}
+
+int main() {
+  int a;
+  printf("debut main\n");
+  a = somme_n_entiers(0);
+  printf("de retour dans main\n");
+  print(a);
+  printf("\n");
+  return 0;
+}

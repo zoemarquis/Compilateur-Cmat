@@ -1,0 +1,13 @@
+const float A = 3.5;
+
+int fonction_1(int a) { return (A); }
+
+/* erreur : incompatibilité des types */
+
+int main() {
+  float a;
+  a = fonction_1(1);
+  print(a);
+  printf("\n");
+  return 0;
+}

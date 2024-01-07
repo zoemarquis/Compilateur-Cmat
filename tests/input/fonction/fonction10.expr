@@ -1,0 +1,17 @@
+const int A = 2;
+
+int fonction_1(int a) {
+  printf("param 1 :\n");
+  print(a);
+  printf("\n");
+  return a;
+}
+
+int main() {
+  int a;
+  a = fonction_1(3);
+  printf("main\n");
+  print(a);
+  printf("\n");
+  return 0;
+}
