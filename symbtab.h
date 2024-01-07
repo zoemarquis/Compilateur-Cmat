@@ -72,6 +72,7 @@ typedef struct _symtable {
   Symbol *symbols;
   Parametres *param;
   nom_fonction nom;
+  unsigned type_fonction;
   UT_hash_handle hh;
 } SymTable;
 

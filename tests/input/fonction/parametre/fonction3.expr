@@ -11,5 +11,3 @@ int main() {
     a = fonction_1(1,2);
     return 0; 
 }
-
-/* erreur pas meme nombre de parametres */

@@ -5,7 +5,7 @@ float fonction_1(int a) { return (A); }
 int main() {
   int a;
   a = fonction_1(1);
-  /* lever erreur a pas du bon type */
+  /* erreur : incompatibilité de type */
   print(a);
   printf("\n");
   return 0;

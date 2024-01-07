@@ -218,6 +218,8 @@ void symtable_dump(SymTable *t) {
 
 void symtable_free(SymTable *t) {
   unsigned int i;
+  free(t->param->liste);
+  free(t->param);
   for (i = 0; i < t->size; i++) {
     if (t->symbols[i].kind == NAME) {
       delete_var(t->symbols[i].var);
@@ -227,12 +229,6 @@ void symtable_free(SymTable *t) {
       free(t->symbols[i].extr.liste);
     }
   }
-  /*
-  for (i = 0; i < t->param->nb; i++) {
-    free(t->param->liste[i]);
-  }
-  */
-  free(t->param);
   free(t->symbols);
   free(t);
 }

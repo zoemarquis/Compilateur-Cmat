@@ -1,0 +1,11 @@
+const int A = 2;
+
+/* OK */
+
+int fonction_1(int a, int b) { return (A); }
+
+int main() {
+  int a;
+  a = fonction_1(1, 2);
+  return 0;
+}

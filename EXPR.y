@@ -116,6 +116,8 @@ fonction
         break;
       }
       gencode(CODE, JR, NULL, NULL, NULL);
+
+      SYMTAB->type_fonction = $1;
     }
   ;
 
@@ -174,6 +176,7 @@ fc_main
       nom_fonction nf;
       strncpy(nf,"main",15);
       SYMTAB = symtable_new("main");
+      SYMTAB->type_fonction = INT;
       add_symtable(SYMTAB);
       add_fonction(nf);
       gencode(CODE, LABEL_FC, NULL, NULL, NULL);
@@ -227,10 +230,6 @@ def_parametre
 parametre
   : INT ID 
     {
-      // ajouter le symbol à la table de la fonction en question
-      // pas init
-      // et il faudra empiler ces parametres
-      
       // 1. vérifier que ça exite pas déjà
       Symbol * id = symtable_get(SYMTAB,$2);
       if (id) {
@@ -241,6 +240,23 @@ parametre
       // 2. créer une entrée dans la table des symboles
       valeur v;
       variable * var = creer_variable($2, INT, true, v);
+      Symbol * res = symtable_put(SYMTAB, $2, var);
+      SYMTAB->param = add_parametre(SYMTAB->param, res);
+
+      gencode(CODE, DEPILER, res, NULL, NULL);
+    }
+  | FLOAT ID
+    {
+      // 1. vérifier que ça exite pas déjà
+      Symbol * id = symtable_get(SYMTAB,$2);
+      if (id) {
+        fprintf(stderr,"Ligne %d : La variable '%s' a déjà été déclarée.\n",nb_ligne, $2);
+        exit(1);
+      }
+
+      // 2. créer une entrée dans la table des symboles
+      valeur v;
+      variable * var = creer_variable($2, FLOAT, true, v);
       Symbol * res = symtable_put(SYMTAB, $2, var);
       SYMTAB->param = add_parametre(SYMTAB->param, res);
 
@@ -267,8 +283,6 @@ affectation_fonction
 
       type1 = id->var->type;
 
-      // type 2 c'est le type de retour de la fonction
-
       // 1. chercher fonction ID dans table de hachage
       SymTable * st = get_symtable($3);
       if (st == NULL){
@@ -276,51 +290,32 @@ affectation_fonction
         exit(1);
       }
 
-      // 2. vérifier que c'est bien un int
-      // TODO pour l'instant que des int
-
-      /*
-      switch($3.ptr->kind){
-        case(NAME):
-          type2 = $3.ptr->var->type;
-          break;
-        case(CONST_INT):
-          type2 = INT;
-          break;
-        case(CONST_FLOAT):
-          type2 = FLOAT;
-          break;
-        default:
-          fprintf(stderr,"Ligne %d : Erreur de type.\n",nb_ligne);
-          exit(1);
-          break;
+      // vérifier le type de retour de la fonction
+      type2 = st->type_fonction;
+      if (type1 == INT && type1 != type2){
+        fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
+        exit(1);
       }
-      */
 
-     // 3. vérifier que il y a le meme nombre de parametres et que ces paramtres sont de meme type
+      // TODO 
+      // 3. vérifier que il y a le meme nombre de parametres et que ces paramtres sont de meme type
       Parametres *p_fc = st->param;
       Parametres *p = $5;
 
       // même nombre de parametres
       if (p->nb != p_fc->nb){
-        fprintf(stderr,"Le nombre de parametres à passer à la fonction %s n'est pas le bon.\n", st->nom);
+        fprintf(stderr,"Le nombre de paramètres à passer à la fonction %s n'est pas le bon.\n", st->nom);
         exit(1);
       }
 
       // même type pour chaque parametre
       for(int i = (p->nb) -1; i>=0; i--){
-       
-        // TO DELETE
-        fprintf(stderr, "i : %d\n", i);
-        fprintf(stderr,"p : %s\n", p->liste[i]->nom_var_fc);
-        fprintf(stderr,"p_fc : %s\n", p_fc->liste[i]->nom_var_fc);
-
         switch(p_fc->liste[i]->kind){
           case(NAME):
             type1 = p_fc->liste[i]->var->type;
             break;
           default:
-            fprintf(stderr,"Ligne %d : something went wrong\n",nb_ligne);
+            fprintf(stderr,"Ligne %d : Les paramètres des fonctions ne peuvent être que des INT ou des FLOAT.\n",nb_ligne);
             exit(1);
             break;
         }
@@ -335,49 +330,39 @@ affectation_fonction
             type2 = FLOAT;
             break;
           default:
-            fprintf(stderr,"Ligne %d : something went wrong\n",nb_ligne);
+            fprintf(stderr,"Ligne %d : Les paramètres des fonctions ne peuvent être que des INT ou des FLOAT.\n",nb_ligne);
             exit(1);
             break;
         }
 
-        if (type1 != type2){
-          fprintf(stderr,"Ligne %d : Erreur de type lors de l'appel à la fonction %s\n",nb_ligne, st->nom);
+        assert(type1 == INT || type1 == FLOAT);
+        if (type1 == INT && type1 != type2){
+          fprintf(stderr,"Ligne %d : Erreur de type d'un paramètre lors de l'appel à la fonction %s\n",nb_ligne, st->nom);
           exit(1);
           break;
         }
+        assert(type2 == INT || type2 == FLOAT);
 
         gencode(CODE, EMPILER, p->liste[i], NULL, NULL);
       }
 
       id->var->init = true;
 
-
       // créer un symbol juste pour avoir le nom d'où on veut jump
-      /*
-      valeur val;
-      Symbol * s1 = symtable_symtable(SYMTAB, FONCTION);
-      s1->kind = FONCTION;
-      */
       valeur val;
       Symbol * s1 = newtemp(SYMTAB, 0, val);
       free(s1->var); // pas besoin de ce qu'il y a dedans
       s1->kind = FONCTION;
       s1->st = st;
-      // s1->st = st;
-      /*
-      Symbol * s1 = (Symbol *)malloc(sizeof(Symbol));
-      s1->kind = FONCTION;
-      s1->st = st;
-      */
 
       gencode(CODE, JAL_FC, s1, NULL, NULL);
-      // free(st);
 
       valeur val2;
       Symbol * tmp = newtemp(SYMTAB, INT, val2);
       gencode(CODE, MOVE, tmp, NULL, NULL); 
 
       gencode(CODE,COPY,id,tmp,NULL);
+      free(p->liste);
       free(p);
     }
 
@@ -388,8 +373,6 @@ liste_param
     }
   | expr 
     {
-      // TODO : vérif que c'est un int ou un float
-      // nouvelle liste param nb = 1 et juste expr dedans
       Parametres *p = init_param();
       $$ = add_parametre(p, $1.ptr);
     }

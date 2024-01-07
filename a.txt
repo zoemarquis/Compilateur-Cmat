@@ -1,0 +1,45 @@
+.data
+newline: .asciiz "\n"
+tab: .asciiz "\t"
+globalA: .word 2
+fonction_1a: .word 0
+fonction_1b: .float 0.0
+maina: .word 0
+maincint1: .word 1
+maincint2: .word 2
+maint1: .word 0
+maincint3: .word 0
+	.text
+fonction_1: 
+	# pas depiler : lw $ra, 0($sp)
+	add $sp, $sp, 4
+	lw $t0, 0($sp)
+	sw $t0, fonction_1a
+	addi $sp, $sp, 4
+	lw $t0, 0($sp)
+	sw $t0, fonction_1b
+	addi $sp, $sp, 4
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	lw $v0, globalA
+	lw $ra, 0($sp)
+	add $sp, $sp, 4
+	jr $ra
+main: 
+	lw $t0, maincint2
+	addi $sp, $sp, -4
+	sw $t0, 0($sp)
+	lw $t0, maincint1
+	addi $sp, $sp, -4
+	sw $t0, 0($sp)
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	jal fonction_1
+	move $t0, $v0
+	sw $t0, maint1
+	lw $t0, maint1
+	sw $t0,maina
+exit: 
+# exit
+	li $v0,10
+	syscall
