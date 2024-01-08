@@ -19,17 +19,6 @@ Matrix *create_matrix(unsigned l, unsigned c) {
   return matrix;
 }
 
-/* inutile ?
-void printmat(Matrix *matrix) {
-  for (unsigned i = 0; i < matrix->l; i++) {
-    for (unsigned j = 0; j < matrix->c; j++) {
-      printf("%f\t", matrix->data[(i * matrix->c) + j]);
-    }
-    printf("\n");
-  }
-}
-*/
-
 void delete_matrix(Matrix *matrix) {
   free(matrix->data);
   free(matrix);

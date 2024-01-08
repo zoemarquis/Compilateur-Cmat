@@ -170,12 +170,12 @@ void symtable_dump(SymTable *t) {
   unsigned int i;
   for (i = 0; i < t->size; i++) {
     if (t->symbols[i].kind == CONST_INT)
-      printf("       %p = %d\n", &(t->symbols[i]),
-             t->symbols[i].var->val.entier);
+      fprintf(OUTPUT, "       %p = %d\n", &(t->symbols[i]),
+              t->symbols[i].var->val.entier);
     if (t->symbols[i].kind == NAME)
-      printf("       %p = %s\n", &(t->symbols[i]), t->symbols[i].name);
+      fprintf(OUTPUT, "       %p = %s\n", &(t->symbols[i]), t->symbols[i].name);
   }
-  printf("       --------\n");
+  fprintf(OUTPUT, "       --------\n");
 }
 
 void symtable_free(SymTable *t) {

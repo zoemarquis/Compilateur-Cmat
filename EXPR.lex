@@ -87,6 +87,6 @@ STRING \"([^"])*\"
 {SINGLECOMMENT}                             { /*Ne rien faire*/; }
 [[:space:]]                                 { /*Ne rien faire*/; }
 
-.                                           {printf("<Erreur token inconnu : '%s'>\n", yytext);}
+.                                           {fprintf(stderr,"<Erreur token inconnu : '%s'>\n", yytext);}
 
 %%
