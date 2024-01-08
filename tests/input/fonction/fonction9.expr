@@ -11,7 +11,7 @@ int fonction_1(int a) {
     printf("faux\n");
   }
   printf("avant return\n");
-  return a;
+  return(a);
 }
 
 int main() {
@@ -22,3 +22,5 @@ int main() {
   printf("\n");
   return 0;
 }
+
+/* OK */

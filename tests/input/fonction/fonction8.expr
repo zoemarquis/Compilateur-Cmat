@@ -12,7 +12,7 @@ int fonction_1(int a) {
     printf("faux\n");
   }
   printf("ici\n");
-  return res;
+  return(res);
 }
 
 int main() {
@@ -22,3 +22,5 @@ int main() {
   printf("\n");
   return 0;
 }
+
+/* OK */

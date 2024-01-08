@@ -87,12 +87,17 @@ re_empiler_adresse
 
 type_fonction
   : INT       { $$ = INT; }
-  | FLOAT     { $$ = FLOAT; }
+  | FLOAT     
+    { 
+      fprintf(stderr,"Ligne %d : Déclaration de fonction de type de retour INT uniquement.\n",nb_ligne);
+      exit(1);
+    }
   ;
 
 fonction 
   : type_fonction nom_fonction depiler_adresse def_parametre re_empiler_adresse LCURLY suite_instructions retour_fc RCURLY 
     {
+      assert($1 == INT);
       unsigned type1;
       switch($8.ptr->kind){
         case(NAME):
@@ -102,22 +107,19 @@ fonction
         case(CONST_INT):
           type1 = INT;
           break;
-        case(CONST_FLOAT):
-          type1 = FLOAT;
-          break;
         default:
-          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
           exit(1);
           break;
       }
-      if ($1 == INT && type1 != INT){
+      if (type1 != $1){
         fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyée et le type de la fonction.\n",nb_ligne);
         exit(1);
         break;
       }
-      gencode(CODE, JR, NULL, NULL, NULL);
 
-      SYMTAB->type_fonction = $1;
+      gencode(CODE, RETOUR_FC, $8.ptr, NULL, NULL);
+      gencode(CODE, JR, NULL, NULL, NULL);
     }
   ;
 
@@ -176,7 +178,6 @@ fc_main
       nom_fonction nf;
       strncpy(nf,"main",15);
       SYMTAB = symtable_new("main");
-      SYMTAB->type_fonction = INT;
       add_symtable(SYMTAB);
       add_fonction(nf);
       gencode(CODE, LABEL_FC, NULL, NULL, NULL);
@@ -282,6 +283,10 @@ affectation_fonction
       unsigned type1, type2;
 
       type1 = id->var->type;
+      if (type1 != INT){
+        fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
+        exit(1);
+      }
 
       // 1. chercher fonction ID dans table de hachage
       SymTable * st = get_symtable($3);
@@ -290,14 +295,6 @@ affectation_fonction
         exit(1);
       }
 
-      // vérifier le type de retour de la fonction
-      type2 = st->type_fonction;
-      if (type1 == INT && type1 != type2){
-        fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-        exit(1);
-      }
-
-      // TODO 
       // 3. vérifier que il y a le meme nombre de parametres et que ces paramtres sont de meme type
       Parametres *p_fc = st->param;
       Parametres *p = $5;
@@ -1375,16 +1372,143 @@ expr
     free($6.liste);
   }
 
-  //| expr MINUS expr
-    /*{ 
-      $$.ptr = newtemp(SYMTAB);
-      gencode(CODE,BOP_MINUS,$$.ptr,$1.ptr,$3.ptr); 
-    }*/
-  //| expr MULT expr
-    /*{ 
-      $$.ptr = newtemp(SYMTAB);
+  | expr MINUS expr
+    { 
+      //Vérification des types des opérateurs
+      unsigned type1, type2, type;
+      switch($1.ptr->kind){
+        case(NAME):
+          type1 = $1.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une soustraction.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+      switch($3.ptr->kind){
+        case(NAME):
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une soustraction.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+      //Si on a une matrice dans le calcul
+      valeur val;
+      if (type1 == MATRIX || type2 == MATRIX) {
+        type = MATRIX;
+
+        // Si 2 matrices : vérifier si elles font la même taille
+        if ((type1 == MATRIX && type2 == MATRIX)&&(($1.ptr->var->val.matrix->l != $3.ptr->var->val.matrix->l) || ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->c))){
+          fprintf(stderr,"Incompatibilité entre les tailles de matrice lors d'une soustraction.\n");
+          exit(1);
+        }
+
+        // créer une matrix pour la var temporaire
+      if (type1 == MATRIX){
+        Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $1.ptr->var->val.matrix->c);
+        val.matrix = m;
+      } else {
+        Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
+        val.matrix = m;
+      }
+    }
+    else if (type1 == FLOAT || type2 == FLOAT) 
+      type = FLOAT;
+    else 
+      type = INT;
+
+    $$.ptr = newtemp(SYMTAB, type, val);
+    gencode(CODE,BOP_MINUS,$$.ptr,$1.ptr,$3.ptr); 
+  }
+
+  | expr MULT expr
+    {
+      //Vérification des types des opérateurs
+      unsigned type1, type2, type;
+      switch($1.ptr->kind){
+        case(NAME):
+          type1 = $1.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une multiplication.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+      switch($3.ptr->kind){
+        case(NAME):
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une multiplication.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+
+      //Vérification sur les matrices, s'il y en a
+      valeur val;
+      if (type1 == MATRIX || type2 == MATRIX) {
+        type = MATRIX;
+
+      //Si 2 matrices : vérifier que les tailles sont compatibles
+      if ((type1 == MATRIX && type2 == MATRIX) && ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->l)) {
+        fprintf(stderr,"Ligne %d : Incompatibilité entre les dimensions de matrices lors d'une multiplication.\n", nb_ligne);
+        exit(1);
+      }
+
+      // Créer une matrice pour la variable temporaire
+      if (type1 == MATRIX && type2 == MATRIX){
+        Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
+        val.matrix = m;
+      }
+      else if (type1 == MATRIX){
+        Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $1.ptr->var->val.matrix->c);
+        val.matrix = m;
+      } else {
+        Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
+        val.matrix = m;
+      }
+
+      // TODO : vérif
+
+      } else if (type1 == FLOAT || type2 == FLOAT){
+          type = FLOAT;
+      } else { 
+          type = INT;
+      }
+      $$.ptr = newtemp(SYMTAB, type, val);
       gencode(CODE,BOP_MULT,$$.ptr,$1.ptr,$3.ptr); 
-    }*/
+    }
+
+
+
+
+
   //| MINUS expr %prec UMINUS
     /*{ 
       $$.ptr = newtemp(SYMTAB);
@@ -1967,7 +2091,8 @@ retour_fc
       }
     | RETURN V_FLOAT SEMICOLON
       {
-        $$.ptr = symtable_const_float(SYMTAB,$2); 
+        fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+        exit(1);
       }
     | RETURN LPAR expr RPAR SEMICOLON
     {
@@ -1981,9 +2106,6 @@ retour_fc
         case(CONST_INT):
           type1 = INT;
           break;
-        case(CONST_FLOAT):
-          type1 = FLOAT;
-          break;
         default:
           fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
           exit(1);
@@ -1994,7 +2116,7 @@ retour_fc
         exit(1);
         break;
       }
-      gencode(CODE, RETOUR_FC, $3.ptr, NULL, NULL);
+      
       $$ = $3;
     }
   ;
@@ -2006,7 +2128,8 @@ retour_main
     }
   | RETURN V_FLOAT SEMICOLON
     {
-      $$.ptr = symtable_const_float(SYMTAB,$2); 
+      fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          exit(1);
     }
   | RETURN LPAR expr RPAR SEMICOLON
     {
@@ -2019,14 +2142,12 @@ retour_main
         case(CONST_INT):
           type1 = INT;
           break;
-        case(CONST_FLOAT):
-          type1 = FLOAT;
-          break;
         default:
-          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyer et le type de la fonction.\n",nb_ligne);
           exit(1);
           break;
       }
+      // exactement le même message dans la regle fonction_principale
       if (type1 != INT){
         fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyer et le type de la fonction.\n",nb_ligne);
         exit(1);

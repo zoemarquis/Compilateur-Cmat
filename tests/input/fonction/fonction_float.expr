@@ -1,0 +1,15 @@
+const float A = 1.5;
+
+float fonction_1(float a) { return (A); }
+
+int main() {
+  float a;
+  printf("on appel fonction 1\n");
+  a = fonction_1(0.5);
+  printf("de retour dans main\na = ");
+  print(a);
+  printf("\n");
+  return 0;
+}
+
+/* erreur : fonction de type int seulement */

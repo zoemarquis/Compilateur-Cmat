@@ -1,18 +1,8 @@
 const int A = 1;
 
-
 int fonction_1(){
     int a, b, c;
     printf("on est dans fonction 1\non affiche la constante A (= 1)\n");
-    print(A);
-    printf("\n");
-    return 0;
-}
-
-
-int fonction_2(){
-    int a, b, c;
-    printf("on est dans fonction 2\non affiche la constante A (= 1)\n");
     print(A);
     printf("\n");
     return 0;
@@ -25,3 +15,5 @@ int main(){
     printf("de retour dans main\n");
     return 0;
 }
+
+/* OK */

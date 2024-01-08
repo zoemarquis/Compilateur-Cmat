@@ -8,7 +8,6 @@ int fonction_1() {
   return(A);
 }
 
-
 int fonction_2() {
   int a, b, c;
   printf("on est dans fonction 2\non affiche la constante A (= 2)\n");
@@ -16,7 +15,6 @@ int fonction_2() {
   printf("\n");
   return(A + 3);
 }
-
 
 int main() {
   int a, b, c;
@@ -33,3 +31,5 @@ int main() {
 
   return 0;
 }
+
+/* OK */

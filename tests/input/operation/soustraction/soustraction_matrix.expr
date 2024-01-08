@@ -1,0 +1,37 @@
+int main(){
+    matrix a[2] = {1,2};
+    matrix b[2] = {3,4};
+
+    matrix c[2] = a;
+
+    matrix d[2] = a - b;
+
+    printf("a : ");
+    printmat(a);
+
+    printf("b : ");
+    printmat(b);
+
+    printf("c : ");
+    printmat(c);
+
+    printf("d : ");
+    printmat(d);
+
+    matrix z[3][3] = {{1,2,3},{4,5,6},{4,5,7}};
+    matrix e[3][3] = {{3,2,3},{4,5,9},{4,5,7}};
+
+    matrix k[3][3] = z - e - z;
+
+    printf("z : \n");
+    printmat(z);
+
+    printf("e : \n");
+    printmat(e);
+
+    printf("k : \n");
+    printmat(k);
+    
+    return 0;
+}
+/* OK */

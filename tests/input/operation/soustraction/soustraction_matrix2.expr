@@ -1,0 +1,42 @@
+int main() {
+  matrix a[2] = {1, 2};
+  matrix b[2] = {3, 4};
+  float f = 6.7;
+  int i = 3;
+
+  matrix s[2] = b - 3;
+  printf("s : ");
+  printmat(s);
+  printf("\n");
+
+  matrix v[2] = i - b;
+  printf("v : ");
+  printmat(v);
+  printf("\n");
+
+  matrix c[2] = b - f;
+  printf("c : ");
+  printmat(c);
+  printf("\n");
+
+  matrix d[2] = b - f - a - i - 1;
+  printf("d : ");
+  printmat(d);
+  printf("\n");
+
+  matrix e[3][2] = {{4, 2}, {3, 2}, {1, 2}};
+  matrix g[3][2] = {{1, 1}, {2, 2}, {4, 3}};
+
+  matrix j[3][2] = e - g;
+  printf("j : ");
+  printmat(j);
+  printf("\n");
+
+  matrix h[3][2] = e - f - g - i - 1;
+  printf("h : ");
+  printmat(h);
+  printf("\n");
+
+  return 0;
+}
+/* OK */

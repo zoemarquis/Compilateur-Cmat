@@ -1,0 +1,22 @@
+const int A = 3;
+const float B = 1.5;
+
+int main() {
+  /* int - const int */
+  int a = A - 2;
+  print(a);
+  printf("\n");
+
+  /* float - const int */
+  float b = A - 2.5;
+  print(b);
+  printf("\n");
+
+  /* matrix - const int */
+  matrix c[2][2] = {{1, 1}, {1, 1}};
+  printmat(c - A);
+  printf("\n");
+
+  return 0;
+}
+/* OK */

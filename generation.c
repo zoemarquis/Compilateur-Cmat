@@ -85,24 +85,6 @@ Symbol *newtemp(SymTable *t, unsigned type, valeur val) {
   return s;
 }
 
-/*
-static void symbol_dump(Symbol *s) {
-  switch (s->kind) {
-    case NAME:
-      printf("%s", s->name);
-      break;
-    case CONST_INT:
-      printf("%d", s->const_int);
-      break;
-    case CONST_FLOAT:
-      printf("%f", s->const_float);
-      break;
-    default:
-      break;
-  }
-}
-*/
-
 static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
                       Stack *pile_for, Quad *q) {
   unsigned type1, type2;
@@ -114,7 +96,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       break;
 
     case DEPILER_ADRESSE:
-      printf("\t# pas depiler : lw $ra, 0($sp)\n");
+      printf("\t# lw $ra, 0($sp)\n");
       printf("\tadd $sp, $sp, 4\n");
       break;
 
@@ -141,8 +123,6 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       printf("\tsw $ra, 0($sp)\n");
 
       printf("\tjal %s\n", q->sym1->st->nom);
-      /*printf("\tlw $ra, 4($sp)\n");
-      printf("\tadd $sp, $sp, 4\n");*/
       break;
 
     case JR:
@@ -152,22 +132,20 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       break;
 
     case RETOUR_FC:
-      // cas de retour de int
       printf("\tlw $v0, %s\n", q->sym1->nom_var_fc);
       break;
 
     case MOVE:
-      // cas de retour de int
       printf("\tmove $t0, $v0\n");
       printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
       break;
 
+    // structures de controle
     case DEBUT_BLOC:
       printf("debut_bloc_%d:\n", cpt_bloc);
       push(pile_bloc, cpt_bloc);
       cpt_bloc++;
       break;
-
     case FIN_BLOC:
       printf("fin_bloc_%d:\n", pop(pile_bloc));
       break;
@@ -294,6 +272,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
       break;
 
+    // OPÉRATIONS
     case BOP_PLUS:
       if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) &&
           (q->sym3->kind == NAME &&
@@ -301,6 +280,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tla $a0, %s\n", q->sym2->nom_var_fc);
         printf("\tla $a1, %s\n", q->sym3->nom_var_fc);
         printf("\tla $a2, %s\n", q->sym1->nom_var_fc);
+
         printf("\tlw $t2, %s_rows\n", q->sym2->nom_var_fc);
         printf("\tlw $t3, %s_cols\n", q->sym2->nom_var_fc);
 
@@ -310,7 +290,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
         printf("\tli $t1, 0\n");
         printf("\tboucle_add_matrices_colonne_%d:\n", cpt_label);
-        printf("\t\tbge $t1, $t3, ligne_suivante_%d\n", cpt_label);
+        printf("\t\tbge $t1, $t3, ligne_suivante_add_%d\n", cpt_label);
 
         printf("\t\tl.s $f0, 0($a0)\n");
         printf("\t\tl.s $f1, 0($a1)\n");
@@ -323,7 +303,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\t\taddi $t1, $t1, 1\n");
 
         printf("\t\tj boucle_add_matrices_colonne_%d\n", cpt_label);
-        printf("\tligne_suivante_%d:\n", cpt_label);
+        printf("\tligne_suivante_add_%d:\n", cpt_label);
         printf("\t\taddi $t0, $t0, 1\n");
         printf("\t\tj boucle_add_matrices_ligne_%d\n", cpt_label);
 
@@ -333,8 +313,8 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       } else if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) ||
                  (q->sym3->kind == NAME &&
                   q->sym3->var->type == MATRIX)) {  // mat + cst ou cst + mat
-        nom_var mat;
-        nom_var cst;
+        nom_var_fonction mat;
+        nom_var_fonction cst;
         unsigned type = 0;
 
         if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
@@ -371,7 +351,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
         printf("\tla $a0, %s\n", mat);
         printf("\tlwc1 $f1, %s\n", cst);
-        if (type == INT) {
+        if (type == INT) {  // conversion entier vers flottant
           printf("\tcvt.s.w $f1, $f1\n");
         }
         printf("\tla $a1, %s\n", q->sym1->var->nom_var_fc);
@@ -384,7 +364,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
 
         printf("\tli $t5, 0\n");
         printf("\tboucle_add_matrice_cst_colonne_%d:\n", cpt_label);
-        printf("\t\tbge $t5, $t3, ligne_suivante_%d\n", cpt_label);
+        printf("\t\tbge $t5, $t3, ligne_suivante_add_%d\n", cpt_label);
 
         printf("\t\tlwc1 $f2, 0($a0)\n");
         printf("\t\tadd.s $f3, $f2, $f1\n");
@@ -396,7 +376,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\t\taddi $t5, $t5, 1\n");
 
         printf("\t\tj boucle_add_matrice_cst_colonne_%d\n", cpt_label);
-        printf("\tligne_suivante_%d:\n", cpt_label);
+        printf("\tligne_suivante_add_%d:\n", cpt_label);
         printf("\t\taddi $t4, $t4, 1\n");
         printf("\t\tj boucle_add_matrice_cst_ligne_%d\n", cpt_label);
 
@@ -444,32 +424,374 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       }
       break;
 
-    // TODO
     case BOP_MINUS:
-      if (q->sym2->kind == CONST_INT)
-        printf("\tli $t0, %d\n", q->sym2->var->val.entier);
-      else
-        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
-      if (q->sym3->kind == CONST_INT)
-        printf("\tli $t1, %d\n", q->sym3->var->val.entier);
-      else
-        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
-      printf("\tsub $t0,$t0,$t1\n");
-      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
+      if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) &&
+          (q->sym3->kind == NAME && q->sym3->var->type == MATRIX)) {
+        printf("\tla $a0, %s\n", q->sym2->nom_var_fc);  // Matrix 1
+        printf("\tla $a1, %s\n", q->sym3->nom_var_fc);  // Matrix 2
+        printf("\tla $a2, %s\n", q->sym1->nom_var_fc);  // Matrix résultat
+
+        printf("\tlw $t2, %s_rows\n", q->sym2->nom_var_fc);
+        printf("\tlw $t3, %s_cols\n", q->sym2->nom_var_fc);
+
+        printf("\tli $t0, 0\n");
+        printf("boucle_sub_matrices_ligne_%d:\n", cpt_label);
+        printf("\tbge $t0, $t2, fin_sub_%d\n", cpt_label);
+
+        printf("\tli $t1, 0\n");
+        printf("\tboucle_sub_matrices_colonne_%d:\n", cpt_label);
+        printf("\t\tbge $t1, $t3, ligne_suivante_sub_%d\n", cpt_label);
+
+        printf("\t\tl.s $f0, 0($a0)\n");      // Chargement de la valeur de la
+                                              // matrice 1 en [i][j]
+        printf("\t\tl.s $f1, 0($a1)\n");      // Chargement de la valeur de la
+                                              // matrice 2 en [i][j]
+        printf("\t\tsub.s $f2, $f0, $f1\n");  // Soustraction des 2 valeurs
+                                              // chargées
+        printf("\t\ts.s $f2, 0($a2)\n");      // Stockage du résultat dans la
+                                              // matrice 3 en [i][j]
+
+        printf("\t\taddi $a0, $a0, 4\n");
+        printf("\t\taddi $a1, $a1, 4\n");
+        printf("\t\taddi $a2, $a2, 4\n");
+        printf("\t\taddi $t1, $t1, 1\n");
+
+        printf("\t\tj boucle_sub_matrices_colonne_%d\n", cpt_label);
+        printf("\tligne_suivante_sub_%d:\n", cpt_label);
+        printf("\t\taddi $t0, $t0, 1\n");
+        printf("\t\tj boucle_sub_matrices_ligne_%d\n", cpt_label);
+
+        printf("fin_sub_%d:\n", cpt_label);
+
+        cpt_label++;
+      }
+      // Soustraction d'une matrice et une constante(float ou integer)
+      else if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) ||
+               (q->sym3->kind == NAME && q->sym3->var->type == MATRIX)) {
+        nom_var_fonction mat;
+        nom_var_fonction cst;
+        unsigned type = 0;
+
+        // Cas : matrice - constante
+        if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
+          strcpy(mat, q->sym2->nom_var_fc);
+          strcpy(cst, q->sym3->nom_var_fc);
+          if (q->sym3->kind == NAME) {
+            type = q->sym3->var->type;
+          } else {
+            if (q->sym3->kind ==
+                CONST_INT)  // Vérifier que q->sym2->kind == CONST_INT aussi ??
+              type = INT;
+            else if (q->sym3->kind == CONST_FLOAT)
+              type = FLOAT;
+            else {
+              fprintf(stderr,
+                      "Incompatibilité de types dans une soustraction.\n");
+              exit(1);
+            }
+          }
+
+        } else {
+          strcpy(mat, q->sym3->nom_var_fc);
+          strcpy(cst, q->sym2->nom_var_fc);
+          if (q->sym2->kind == NAME) {
+            type = q->sym2->var->type;
+          } else {
+            if (q->sym2->kind ==
+                CONST_INT)  // Vérifier que q->sym3->kind == CONST_INT aussi ??
+              type = INT;
+            else if (q->sym2->kind == CONST_FLOAT)
+              type = FLOAT;
+            else {
+              fprintf(stderr,
+                      "Incompatibilité de types dans une soustraction.\n");
+              exit(1);
+            }
+          }
+        }
+
+        printf("\tla $a0, %s\n", mat);    // Chargement matrice
+        printf("\tlwc1 $f1, %s\n", cst);  // Chargement constante
+
+        // Conversion entier vers flottant
+        if (type == INT) {
+          printf("\tcvt.s.w $f1, $f1\n");
+        }
+
+        printf("\tla $a1, %s\n", q->sym1->var->nom_var_fc);  // Matrice résultat
+        printf("\tlw $t2, %s_rows\n", mat);
+        printf("\tlw $t3, %s_cols\n", mat);
+
+        printf("\tli $t4, 0\n");
+        printf("boucle_sub_matrice_cst_ligne_%d:\n", cpt_label);
+        printf("\tbge $t4, $t2, fin_sub_%d\n", cpt_label);
+
+        printf("\tli $t5, 0\n");
+        printf("\tboucle_sub_matrice_cst_colonne_%d:\n", cpt_label);
+        printf("\t\tbge $t5, $t3, ligne_suivante_sub_%d\n", cpt_label);
+
+        // Soustraction
+        printf("\t\tlwc1 $f2, 0($a0)\n");
+        printf("\t\tsub.s $f3, $f2, $f1\n");
+
+        printf("\t\tswc1 $f3, 0($a1)\n");  // Stockage du résultat
+
+        printf("\t\taddi $a0, $a0, 4\n");
+        printf("\t\taddi $a1, $a1, 4\n");
+        printf("\t\taddi $t5, $t5, 1\n");
+
+        // Prochain élément ligne
+        printf("\t\tj boucle_sub_matrice_cst_colonne_%d\n", cpt_label);
+        printf("\tligne_suivante_sub_%d:\n", cpt_label);
+
+        // Prochaine ligne
+        printf("\t\taddi $t4, $t4, 1\n");
+        printf("\t\tj boucle_sub_matrice_cst_ligne_%d\n", cpt_label);
+
+        // Fin
+        printf("fin_sub_%d:\n", cpt_label);
+        cpt_label++;
+      }
+      // Cas : constante - constante
+      else {
+        // Operateur 1
+        // Si l'operateur 1 est un entier
+        if (q->sym2->kind == CONST_INT ||
+            (q->sym2->kind == NAME && q->sym2->var->type == INT)) {
+          printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+          type1 = INT;
+        }
+        // Si l'operateur 1 est un flottant
+        else if ((q->sym2->kind == CONST_FLOAT) ||
+                 (q->sym2->kind == NAME && q->sym2->var->type == FLOAT)) {
+          printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+          type1 = FLOAT;
+        }
+
+        // Operateur 2
+        // Si l'operateur 2 est un entier
+        if (q->sym3->kind == CONST_INT ||
+            (q->sym3->kind == NAME && q->sym3->var->type == INT)) {
+          printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
+          type2 = INT;
+        }
+        // Si l'operateur 2 est un flottant
+        else if ((q->sym3->kind == CONST_FLOAT) ||
+                 (q->sym3->kind == NAME && q->sym3->var->type == FLOAT)) {
+          printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
+          type2 = FLOAT;
+        }
+
+        // Soustraction de 2 entiers
+        if (type1 == INT && type2 == INT) {
+          printf("\tsub $t0,$t0,$t1\n");
+          printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
+        } else {
+          // Conversion d'un entier en flottant si necessaire
+          if (type1 == INT && type2 == FLOAT) {
+            printf("mtc1 $t0, $f0\n");
+            printf("cvt.s.w $f0, $f0\n");
+          } else if (type1 == FLOAT && type2 == INT) {
+            printf("mtc1 $t1, $f1\n");
+            printf("cvt.s.w $f1, $f1\n");
+          }
+
+          // Soustraction
+          printf("\tsub.s $f2,$f0,$f1\n");
+          printf("\ts.s $f2, %s\n", q->sym1->nom_var_fc);
+        }
+      }
+
       break;
 
-    // TODO
+    // TODO : vérif
     case BOP_MULT:
-      if (q->sym2->kind == CONST_INT)
-        printf("\tli $t0, %d\n", q->sym2->var->val.entier);
-      else
-        printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
-      if (q->sym3->kind == CONST_INT)
-        printf("\tli $t1, %d\n", q->sym3->var->val.entier);
-      else
-        printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
-      printf("\tmul $t0,$t0,$t1\n");
-      printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
+      if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) &&
+          (q->sym3->kind == NAME && q->sym3->var->type == MATRIX)) {
+        printf("\tla $a0, %s\n", q->sym2->nom_var_fc);
+        printf("\tla $a1, %s\n", q->sym3->nom_var_fc);
+        printf("\tla $a2, %s\n", q->sym1->nom_var_fc);
+        printf("\tlw $t0, %s_rows\n", q->sym2->nom_var_fc);
+        printf("\tlw $t1, %s_cols\n", q->sym2->nom_var_fc);
+        printf("\tlw $t2, %s_cols\n", q->sym3->nom_var_fc);
+
+        printf("\tli $t3, 0\n");
+        printf("boucle_i_%d:\n", cpt_label);
+        printf("\tli $t4, 0\n");
+
+        printf("\tboucle_j_%d:\n", cpt_label);
+        printf("\t\tli $t5, 0\n");
+        printf("\t\tmtc1 $zero, $f10\n");
+
+        printf("\t\tboucle_k_%d:\n", cpt_label);
+        printf("\t\t\tmul $t6, $t3, $t1\n");
+        printf("\t\t\tadd $t6, $t6, $t5\n");
+
+        printf("\t\t\tmul $t7, $t5, $t2\n");
+        printf("\t\t\tadd $t7, $t7, $t4\n");
+
+        printf("\t\t\tmul $t6, $t6, 4\n");
+        printf("\t\t\tadd $t6, $t6, $a0\n");
+        printf("\t\t\tmul $t7, $t7, 4\n");
+        printf("\t\t\tadd $t7, $t7, $a1\n");
+
+        printf("\t\t\tl.s $f0, 0($t6)\n");
+        printf("\t\t\tl.s $f1, 0($t7)\n");
+        printf("\t\t\tmul.s $f11, $f0, $f1\n");
+        printf("\t\t\tadd.s $f10, $f10, $f11\n");
+
+        printf("\t\t\taddi $t5, $t5, 1\n");
+        printf("\t\t\tbne $t5, $t1, boucle_k_%d\n", cpt_label);
+
+        printf("\t\tmul $t8, $t3, $t2\n");
+        printf("\t\tadd $t8, $t8, $t4\n");
+
+        printf("\t\tmul $t8, $t8, 4\n");
+        printf("\t\tadd $t8, $t8, $a2\n");
+
+        printf("\t\ts.s $f10, 0($t8)\n");
+
+        printf("\t\taddi $t4, $t4, 1\n");
+        printf("\t\tbne $t4, $t2, boucle_j_%d\n", cpt_label);
+        printf("\t\taddi $t3, $t3, 1\n");
+        printf("\t\tbne $t3, $t0, boucle_i_%d\n", cpt_label);
+
+        cpt_label++;
+      }
+      // Multiplication d'une matrice et une constante(float ou integer)
+      else if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) ||
+               (q->sym3->kind == NAME && q->sym3->var->type == MATRIX)) {
+        nom_var_fonction mat;
+        nom_var_fonction cst;
+        unsigned type = 0;
+
+        // Cas : matrice * constante
+        if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
+          strcpy(mat, q->sym2->nom_var_fc);
+          strcpy(cst, q->sym3->nom_var_fc);
+          if (q->sym3->kind == NAME) {
+            type = q->sym3->var->type;
+          } else {
+            if (q->sym3->kind ==
+                CONST_INT)  // Vérifier que q->sym2->kind == CONST_INT aussi ??
+              type = INT;
+            else if (q->sym3->kind == CONST_FLOAT)
+              type = FLOAT;
+            else {
+              fprintf(stderr,
+                      "Incompatibilité de types dans une multiplication.\n");
+              exit(1);
+            }
+          }
+        } else {
+          strcpy(mat, q->sym3->nom_var_fc);
+          strcpy(cst, q->sym2->nom_var_fc);
+          if (q->sym2->kind == NAME) {
+            type = q->sym2->var->type;
+          } else {
+            if (q->sym2->kind ==
+                CONST_INT)  // Vérifier que q->sym3->kind == CONST_INT aussi ??
+              type = INT;
+            else if (q->sym2->kind == CONST_FLOAT)
+              type = FLOAT;
+            else {
+              fprintf(stderr,
+                      "Incompatibilité de types dans une multiplication.\n");
+              exit(1);
+            }
+          }
+        }
+        printf("\tla $a0, %s\n", mat);    // Chargement matrice
+        printf("\tlwc1 $f1, %s\n", cst);  // Chargement constante
+
+        // Conversion entier vers flottant
+        if (type == INT) {
+          printf("\tcvt.s.w $f1, $f1\n");
+        }
+
+        printf("\tla $a1, %s\n", q->sym1->var->nom_var_fc);  // Matrice résultat
+        printf("\tlw $t2, %s_rows\n", mat);
+        printf("\tlw $t3, %s_cols\n", mat);
+
+        printf("\tli $t4, 0\n");
+        printf("boucle_mult_matrice_cst_ligne_%d:\n", cpt_label);
+        printf("\tbge $t4, $t2, fin_mult_%d\n", cpt_label);
+
+        printf("\tli $t5, 0\n");
+        printf("\tboucle_mult_matrice_cst_colonne_%d:\n", cpt_label);
+        printf("\t\tbge $t5, $t3, ligne_suivante_mult_%d\n", cpt_label);
+
+        // Multiplication
+        printf("\t\tlwc1 $f2, 0($a0)\n");
+        printf("\t\tmul.s $f3, $f2, $f1\n");
+        printf("\t\tswc1 $f3, 0($a1)\n");  // Stockage du résultat
+
+        printf("\t\taddi $a0, $a0, 4\n");
+        printf("\t\taddi $a1, $a1, 4\n");
+        printf("\t\taddi $t5, $t5, 1\n");
+
+        // Prochain élément ligne
+        printf("\t\tj boucle_mult_matrice_cst_colonne_%d\n", cpt_label);
+        printf("\tligne_suivante_mult_%d:\n", cpt_label);
+
+        // Prochaine ligne
+        printf("\t\taddi $t4, $t4, 1\n");
+        printf("\t\tj boucle_mult_matrice_cst_ligne_%d\n", cpt_label);
+
+        // Fin
+        printf("fin_mult_%d:\n", cpt_label);
+        cpt_label++;
+      }
+
+      // Cas : constante * constante
+      else {
+        // Opérateur 1
+        // Si l'opérateur 1 est un entier
+        if (q->sym2->kind == CONST_INT ||
+            (q->sym2->kind == NAME && q->sym2->var->type == INT)) {
+          printf("\tlw $t0, %s\n", q->sym2->nom_var_fc);
+          type1 = INT;
+        }
+        // Si l'opérateur 1 est un flottant
+        else if ((q->sym2->kind == CONST_FLOAT) ||
+                 (q->sym2->kind == NAME && q->sym2->var->type == FLOAT)) {
+          printf("\tl.s $f0, %s\n", q->sym2->nom_var_fc);
+          type1 = FLOAT;
+        }
+
+        // Opérateur 2
+        // Si l'opérateur 2 est un entier
+        if (q->sym3->kind == CONST_INT ||
+            (q->sym3->kind == NAME && q->sym3->var->type == INT)) {
+          printf("\tlw $t1, %s\n", q->sym3->nom_var_fc);
+          type2 = INT;
+        }
+        // Si l'opérateur 2 est un flottant
+        else if ((q->sym3->kind == CONST_FLOAT) ||
+                 (q->sym3->kind == NAME && q->sym3->var->type == FLOAT)) {
+          printf("\tl.s $f1, %s\n", q->sym3->nom_var_fc);
+          type2 = FLOAT;
+        }
+
+        // Multiplication de 2 entiers
+        if (type1 == INT && type2 == INT) {
+          printf("\tmul $t0,$t0,$t1\n");
+          printf("\tsw $t0, %s\n", q->sym1->nom_var_fc);
+        } else {
+          // Conversion d'un entier en flottant si nécessaire
+          if (type1 == INT && type2 == FLOAT) {
+            printf("mtc1 $t0, $f0\n");
+            printf("cvt.s.w $f0, $f0\n");
+          } else if (type1 == FLOAT && type2 == INT) {
+            printf("mtc1 $t1, $f1\n");
+            printf("cvt.s.w $f1, $f1\n");
+          }
+
+          // Multiplication
+          printf("\tmul.s $f2,$f0,$f1\n");
+          printf("\ts.s $f2, %s\n", q->sym1->nom_var_fc);
+        }
+      }
       break;
 
     // TODO
