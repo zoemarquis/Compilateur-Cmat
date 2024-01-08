@@ -61,7 +61,7 @@ static void code_grow(Code *c) {
             "Erreur lors de la tentative d'expansion de la liste des "
             "quadruplets (taille actuelle = %d)\n",
             c->nextquad);
-    exit(1);
+    exit(MEMORY_FAILURE);
   }
 }
 
@@ -209,7 +209,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         else {
           fprintf(stderr, "Incompatibilité de types à l'affectation de %s.\n",
                   q->sym1->nom_var_fc);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
         }  // plutot un assert ?
         printf("\tsw $t0,%s\n", q->sym1->nom_var_fc);
       }
@@ -228,7 +228,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         } else {
           fprintf(stderr, "Incompatibilité de types à l'affectation de %s.\n",
                   q->sym1->nom_var_fc);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
         }
         printf("\ts.s $f0, %s\n", q->sym1->nom_var_fc);
       }
@@ -266,7 +266,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         } else {
           fprintf(stderr, "Incompatibilité de types à l'affectation de %s.\n",
                   q->sym1->nom_var_fc);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
         }
       }
 
@@ -329,7 +329,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
               type = FLOAT;
             else {  // cas impossible ?
               fprintf(stderr, "Incompatibilité de types dans une addition.\n");
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
           }
         } else {
@@ -344,7 +344,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
               type = FLOAT;
             else {  // cas impossible ?
               fprintf(stderr, "Incompatibilité de types dans une addition.\n");
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
           }
         }
@@ -487,7 +487,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             else {
               fprintf(stderr,
                       "Incompatibilité de types dans une soustraction.\n");
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
           }
 
@@ -505,7 +505,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             else {
               fprintf(stderr,
                       "Incompatibilité de types dans une soustraction.\n");
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
           }
         }
@@ -680,7 +680,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             else {
               fprintf(stderr,
                       "Incompatibilité de types dans une multiplication.\n");
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
           }
         } else {
@@ -697,7 +697,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             else {
               fprintf(stderr,
                       "Incompatibilité de types dans une multiplication.\n");
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
           }
         }
@@ -869,7 +869,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             else {
               fprintf(stderr,
                       "Incompatibilité de types dans une multiplication.\n");
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
           }
         } else {
@@ -886,7 +886,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
             else {
               fprintf(stderr,
                       "Incompatibilité de types dans une multiplication.\n");
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
           }
         }
@@ -1137,7 +1137,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       }  // float
       else {
         fprintf(stderr, "something went wrong\n");
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       printf("\ts.s $f0, 0($a0)\n");
 
@@ -1231,7 +1231,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tbc1t false_%d\n", cpt_label);
       } else {
         fprintf(stderr, "something went wrong\n");
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       printf("\tli $t0, 1\n");
@@ -1284,7 +1284,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch (q->sym3->kind) {
@@ -1302,7 +1302,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
@@ -1330,7 +1330,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tbc1f, false_%d\n", cpt_label);
       } else {
         fprintf(stderr, "something went wrong\n");
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // cas vrai
@@ -1365,7 +1365,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch (q->sym3->kind) {
@@ -1383,7 +1383,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
@@ -1411,7 +1411,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tbc1f, false_%d\n", cpt_label);
       } else {
         fprintf(stderr, "something went wrong\n");
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // cas vrai
@@ -1446,7 +1446,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch (q->sym3->kind) {
@@ -1464,7 +1464,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
@@ -1492,7 +1492,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tbc1t, false_%d\n", cpt_label);
       } else {
         fprintf(stderr, "something went wrong\n");
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // cas vrai
@@ -1527,7 +1527,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch (q->sym3->kind) {
@@ -1545,7 +1545,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
@@ -1573,7 +1573,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tbc1t, false_%d\n", cpt_label);
       } else {
         fprintf(stderr, "something went wrong\n");
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // cas vrai
@@ -1608,7 +1608,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch (q->sym3->kind) {
@@ -1626,7 +1626,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
@@ -1654,7 +1654,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tbc1f, false_%d\n", cpt_label);
       } else {
         fprintf(stderr, "something went wrong\n");
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // cas vrai
@@ -1689,7 +1689,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch (q->sym3->kind) {
@@ -1707,7 +1707,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr,
                   "Une expression booléenne ne manipule que des expressions "
                   "correspondant à des int ou des float.\n");
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       if (type1 == INT && type2 == INT) {  // si les 2 sont des int
@@ -1735,7 +1735,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         printf("\tbc1t, false_%d\n", cpt_label);
       } else {
         fprintf(stderr, "something went wrong\n");
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // cas vrai

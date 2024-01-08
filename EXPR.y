@@ -90,7 +90,7 @@ type_fonction
   | FLOAT     
     { 
       fprintf(stderr,"Ligne %d : Déclaration de fonction de type de retour INT uniquement.\n",nb_ligne);
-      exit(1);
+      exit(SEMANTIC_FAILURE);
     }
   ;
 
@@ -109,12 +109,12 @@ fonction
           break;
         default:
           fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       if (type1 != $1){
         fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyée et le type de la fonction.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
         break;
       }
 
@@ -130,7 +130,7 @@ nom_fonction
       SymTable * s = get_symtable($1);
       if (s != NULL){
         fprintf(stderr,"Ligne %d : Une fonction portant le nom '%s' est déjà déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       // création de la table des symboles pour cette fonction
       SYMTAB = symtable_new($1);
@@ -159,13 +159,13 @@ fonction_principale
           break;
         default:
           fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
       if (type1 != INT){
         fprintf(stderr,"Ligne %d : Incompatibilité de type de la fonction return.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
         break;
       }
 
@@ -235,7 +235,7 @@ parametre
       Symbol * id = symtable_get(SYMTAB,$2);
       if (id) {
         fprintf(stderr,"Ligne %d : La variable '%s' a déjà été déclarée.\n",nb_ligne, $2);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // 2. créer une entrée dans la table des symboles
@@ -252,7 +252,7 @@ parametre
       Symbol * id = symtable_get(SYMTAB,$2);
       if (id) {
         fprintf(stderr,"Ligne %d : La variable '%s' a déjà été déclarée.\n",nb_ligne, $2);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // 2. créer une entrée dans la table des symboles
@@ -272,27 +272,27 @@ affectation_fonction
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$1);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       unsigned type1, type2;
 
       type1 = id->var->type;
       if (type1 != INT){
         fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // 1. chercher fonction ID dans table de hachage
       SymTable * st = get_symtable($3);
       if (st == NULL){
         fprintf(stderr,"Ligne %d : fonction '%s' non déclarée.\n",nb_ligne,$3);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // 3. vérifier que il y a le meme nombre de parametres et que ces paramtres sont de meme type
@@ -301,8 +301,8 @@ affectation_fonction
 
       // même nombre de parametres
       if (p->nb != p_fc->nb){
-        fprintf(stderr,"Le nombre de paramètres à passer à la fonction %s n'est pas le bon.\n", st->nom);
-        exit(1);
+        fprintf(stderr,"Ligne %d : Le nombre de paramètres à passer à la fonction %s n'est pas le bon.\n",nb_ligne, st->nom);
+        exit(SEMANTIC_FAILURE);
       }
 
       // même type pour chaque parametre
@@ -313,7 +313,7 @@ affectation_fonction
             break;
           default:
             fprintf(stderr,"Ligne %d : Les paramètres des fonctions ne peuvent être que des INT ou des FLOAT.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
             break;
         }
         switch(p->liste[i]->kind){
@@ -328,14 +328,14 @@ affectation_fonction
             break;
           default:
             fprintf(stderr,"Ligne %d : Les paramètres des fonctions ne peuvent être que des INT ou des FLOAT.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
             break;
         }
 
         assert(type1 == INT || type1 == FLOAT);
         if (type1 == INT && type1 != type2){
           fprintf(stderr,"Ligne %d : Erreur de type d'un paramètre lors de l'appel à la fonction %s\n",nb_ligne, st->nom);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
         }
         assert(type2 == INT || type2 == FLOAT);
@@ -411,7 +411,7 @@ def_constante
       Symbol * id = symtable_get(GLOBAL,$3);
       if (id) {
         fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       valeur v;
       v.entier = $5;
@@ -423,7 +423,7 @@ def_constante
       Symbol * id = symtable_get(GLOBAL,$3);
       if (id) {
         fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       valeur v;
       v.flottant = $5;
@@ -435,7 +435,7 @@ def_constante
       Symbol * id = symtable_get(GLOBAL,$3);
       if (id) {
         fprintf(stderr,"Ligne %d : La constante '%s' a déjà été déclarée.\n",nb_ligne, $3);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       valeur v;
       v.flottant = $5;
@@ -445,7 +445,7 @@ def_constante
   | CONST INT ID ASSIGN cste_float
     {
       fprintf(stderr,"Ligne %d : Incompatibilité de type à la déclaration de %s.\n",nb_ligne, $3);
-      exit(1);
+      exit(SEMANTIC_FAILURE);
     }
 
   ;
@@ -458,13 +458,13 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$1);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // sémantique vérifier que le type de l'expr est compatible avec le type de ID
@@ -485,27 +485,27 @@ affectation
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
       if (type1 == MATRIX && type2 != MATRIX){ 
         fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       else if (type1 == INT && type2 != INT) {
         fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       else if (type1 == FLOAT && (type2 != FLOAT && type2 != INT)){
         fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       if (type1 == MATRIX && type2 == MATRIX){ 
         if ((id->var->val.matrix->l != $3.ptr->var->val.matrix->l) || (id->var->val.matrix->c != $3.ptr->var->val.matrix->c)){
           fprintf(stderr,"Ligne %d : Incompatibilité entre les tailles de matrice lors de l'affectation à %s.\n",nb_ligne, $1);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
         }
       }
 
@@ -522,14 +522,14 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$1);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       unsigned type1, type2;
@@ -549,32 +549,32 @@ affectation
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
       // vérifier qu'il s'agit d'une matrice
       if (type1 != MATRIX){
         fprintf(stderr,"Ligne %d : %s n'est pas une matrice, on ne peut donc pas accéder à %s[%d].\n",nb_ligne,id->name,id->name,$3);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier que c'est une matrice à une dimension
       if (id->var->val.matrix->l != 1){
         fprintf(stderr,"Ligne %d : La matrice %s a deux dimensions : impossible d'affecter quelque chose à %s[%d].\n",nb_ligne,id->name,id->name,$3);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier que 0 <= $3 < taille colonne
       if (id->var->val.matrix->c <= $3){
         fprintf(stderr,"Ligne %d : La matrice %s a %d colonnes : %s[%d] out of range.\n",nb_ligne,id->name,id->var->val.matrix->c,id->name,$3);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier que le type de l'expr est compatible avec le type de ID
       if (type2 == MATRIX) {
         fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       assert(type2 == INT || type2 == FLOAT);
 
@@ -596,14 +596,14 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$1);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       unsigned type1, type2;
@@ -623,32 +623,32 @@ affectation
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
       // vérifier qu'il s'agit d'une matrice
       if (type1 != MATRIX){
         fprintf(stderr,"Ligne %d : %s n'est pas une matrice, on ne peut donc pas accéder à %s[%d].\n",nb_ligne,id->name,id->name,$3);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier que 0 <= $3 < taille ligne
       if (id->var->val.matrix->l <= $3){
         fprintf(stderr,"Ligne %d : La matrice %s a %d lignes : %s[%d][%d] out of range.\n",nb_ligne,id->name,id->var->val.matrix->l,id->name,$3,$6);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier que 0 <= $6 < taille colonne
       if (id->var->val.matrix->c <= $6){
         fprintf(stderr,"Ligne %d : La matrice %s a %d colonnes : %s[%d][%d] out of range.\n",nb_ligne,id->name,id->var->val.matrix->c,id->name,$3,$6);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier que le type de l'expr est compatible avec le type de ID
       if (type2 == MATRIX) {
         fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       assert(type2 == INT || type2 == FLOAT);
 
@@ -669,14 +669,14 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$1);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // sémantique vérifier que le type de l'expr est compatible avec le type de ID
@@ -687,7 +687,7 @@ affectation
 
       if (type1 != MATRIX){ 
         fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // marquer que la variable est initialisée
@@ -703,18 +703,18 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$1);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       if(!id->var->init){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       Symbol * ptr = symtable_const_int(SYMTAB, 1);
@@ -727,18 +727,18 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$2);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$2);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$2);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$2);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       if(!id->var->init){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée.\n",nb_ligne,$2);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       Symbol * ptr = symtable_const_int(SYMTAB, 1);
@@ -751,18 +751,18 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$1);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$1);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       if(!id->var->init){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       Symbol * ptr = symtable_const_int(SYMTAB, 1);
@@ -775,18 +775,18 @@ affectation
       Symbol * id = symtable_get(SYMTAB,$2);
       if ( id == NULL ){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$2);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       // vérifier qu'on essaye pas de modifier variable globale
       Symbol * glob = symtable_get(GLOBAL,$2);
       if ( glob != NULL ){
         fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$2);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       if(!id->var->init){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée.\n",nb_ligne,$2);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       Symbol * ptr = symtable_const_int(SYMTAB, 1);
@@ -813,7 +813,7 @@ declaration_variable
         Symbol * id = symtable_get(SYMTAB,v->name);
         if (id) {
           fprintf(stderr,"Ligne %d : La variable '%s' a déjà été déclarée.\n",nb_ligne, v->name);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
         }
 
         type2 = v->type; // 0 ou MATRIX
@@ -834,7 +834,7 @@ declaration_variable
               break;
             default:
               fprintf(stderr,"Ligne %d : Erreur de type.\n",nb_ligne);
-              exit(1);
+              exit(SEMANTIC_FAILURE);
               break;
           }
           assert(type3 == INT || type3 == FLOAT || type3 == MATRIX);
@@ -844,20 +844,20 @@ declaration_variable
           if(type1 == MATRIX && (type2 != MATRIX || type3 != MATRIX)){
             if (type2 != MATRIX){
               fprintf(stderr,"Ligne %d : Il est nécessaire de déclarer les dimensions de %s.\n",nb_ligne,v->name);
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }  // si type 2 != MATRIX : manque les dimensions à la déclaration
             fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
 
           if(type1 == INT && (type2 != 0 || type3 != INT)){
             fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
 
           if(type1 == FLOAT && (type2 != 0 || (type3 != INT && type3 != FLOAT))){
             fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
 
           // ajout table des symboles
@@ -872,7 +872,7 @@ declaration_variable
             Matrix * m2 = s->var->val.matrix;
             if ((m1->l != m2->l) || (m1->c != m2->c)){
               fprintf(stderr,"Ligne %d : Incompatibilité entre les tailles de matrice lors de l'affectation à %s.\n",nb_ligne, v->name);
-              exit(1);
+              exit(SEMANTIC_FAILURE);
             }
             res = symtable_put(SYMTAB,v->name,v);
           } else if (type1 == INT){
@@ -887,7 +887,7 @@ declaration_variable
             res = symtable_put(SYMTAB,v->name,v);
           } else {
             fprintf(stderr,"Ligne %d : Something went wrong\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
 
           v->init = true;
@@ -898,17 +898,17 @@ declaration_variable
           // vérifier la compatibilité des types
           if(type1 == MATRIX && type2 != MATRIX){
             fprintf(stderr,"Ligne %d : Il est nécessaire de déclarer les dimensions de %s.\n",nb_ligne,v->name);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
 
           if(type1 == INT && type2 != 0){
             fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
 
           if(type1 == FLOAT && type2 != 0){
             fprintf(stderr,"Ligne %d : Incompatibilité de types.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
 
           if (type1 == MATRIX){ 
@@ -924,7 +924,7 @@ declaration_variable
             symtable_put(SYMTAB,v->name,v);
           } else {
             fprintf(stderr,"Ligne %d : Something went wrong\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
 
         }
@@ -1028,7 +1028,7 @@ taille
   { 
     if ($2==0){
       fprintf(stderr, "Ligne %d : Une dimension de matrice ne peut pas être nulle.\n",nb_ligne);
-      exit(1);
+      exit(SEMANTIC_FAILURE);
     }
     $$ = $2; 
   }
@@ -1055,7 +1055,7 @@ liste_matrix_ligne
     | liste_matrix_ligne COMMA matrix_une_ligne {
         if ($1->c != $3->c){
             fprintf(stderr, "Ligne %d : Chaque ligne d'une matrice doit avoir le même nombre de colonne.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
         } 
         add_ligne($1, $3); // ajouter $3 en derniere ligne de $1
         $$ = $1;
@@ -1103,49 +1103,19 @@ afficher
           break;
         default:
           fprintf(stderr,"Ligne %d : La fonction print ne peut qu'afficher des expressions correspondantes à des INT ou des FLOAT.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
       if (type1 != INT && type1 != FLOAT){
         fprintf(stderr,"Ligne %d : La fonction print ne peut qu'afficher des expressions correspondantes à des INT ou des FLOAT.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
-
-    /*
-    Symbol * id = symtable_get(SYMTAB,$3);
-    if (id == NULL) {
-      fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée, elle ne peut donc pas être affichée.\n",nb_ligne,$3);
-      exit(1);
-    } else if (!(id->var->type == INT || id->var->type == FLOAT)){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'est pas de type INT ou FLOAT, elle ne peut donc pas être affichée à l'aide de la fonction print.\n",nb_ligne,$3);
-      exit(1);
-    } else if (!id->var->init){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être affichée.\n",nb_ligne,$3);
-      exit(1);
-    }
-    */
       gencode(CODE,CALL_PRINT,$3.ptr,NULL,NULL);
   }
 
   | PRINTMAT LPAR expr RPAR 
     {
-
-    /*
-    Symbol * id = symtable_get(SYMTAB,$3);
-    if (id == NULL) {
-      fprintf(stderr,"Ligne %d : La matrice '%s' n'a jamais été déclarée, elle ne peut donc pas être affichée.\n",nb_ligne,$3);
-      exit(1);
-    } else if (!(id->var->type == MATRIX)){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'est pas de type MATRIX, elle ne peut donc pas être affichée à l'aide de la fonction mat.\n",nb_ligne,$3);
-      exit(1);
-    } else if (!id->var->init){
-      fprintf(stderr,"Ligne %d : La matrice '%s' n'a jamais été initialisée, elle ne peut donc pas être affichée.\n",nb_ligne,$3);
-      exit(1);
-    }
-    gencode(CODE,CALL_PRINTMAT,id,NULL,NULL);
-  }
-  */
       unsigned type1;
 
       switch($3.ptr->kind){
@@ -1155,13 +1125,13 @@ afficher
           break;
         default:
           fprintf(stderr,"Ligne %d : La fonction printmat ne peut qu'afficher des expressions correspondantes à des MATRIX.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
       if (type1 != MATRIX){
         fprintf(stderr,"Ligne %d : La fonction printmat ne peut qu'afficher des expressions correspondantes à des MATRIX.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       gencode(CODE,CALL_PRINTMAT,$3.ptr,NULL,NULL);
@@ -1192,7 +1162,7 @@ expr
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type dans une addition.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch($3.ptr->kind){
@@ -1207,7 +1177,7 @@ expr
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type dans une addition.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
@@ -1218,7 +1188,7 @@ expr
         // vérifier même tailles si les 2 sont matrices
         if ((type1 == MATRIX && type2 == MATRIX)&&(($1.ptr->var->val.matrix->l != $3.ptr->var->val.matrix->l) || ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->c))){
           fprintf(stderr,"Ligne %d : Incompatibilité entre les tailles de matrice lors d'une addition.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
         }
 
         // créer une matrix pour la var temporaire
@@ -1247,11 +1217,11 @@ expr
         Symbol * id = symtable_get(SYMTAB,$1);
         if (id==NULL){
             fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
         }
         if (!id->var->init){
-          fprintf(stderr,"1045 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
-          exit(1);
+          fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
+          exit(SEMANTIC_FAILURE);
         }
         $$.ptr = id;
       }
@@ -1272,24 +1242,24 @@ expr
       Symbol * id = symtable_get(SYMTAB,$1);
       if (id == NULL){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       if (!id->var->init){
-        fprintf(stderr,"1071 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
-        exit(1);
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // 2. vérifier que c'est une matrice
       if (id->var->type != MATRIX){
         fprintf(stderr,"Ligne %d : La variable '%s' n'est pas de type matrix.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // 3. vérifier que c'est bien une matrice une dimension
       if (id->var->val.matrix->l != 1){
         fprintf(stderr,"Ligne %d : La matrix '%s' n'est pas de dimension 1.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // 4. vérifier correspondance dimensions matrice / extract
@@ -1297,9 +1267,8 @@ expr
         Matrix *m = id->var->val.matrix;
         for (int i = 0; i < $3.taille; i++) {
           if ($3.liste[i] != -1 && $3.liste[i] >= m->c) {
-            //fprintf(stderr, "l = %d , c = %d, $3.liste[i] = %d\n", m->l, m->c, $3.liste[i]);
             fprintf(stderr, "Ligne %d : Indice de colonne out of range.\n",nb_ligne);
-            exit(1);
+            exit(SEMANTIC_FAILURE);
           }
         }
 
@@ -1354,18 +1323,18 @@ expr
       Symbol * id = symtable_get(SYMTAB,$1);
       if (id == NULL){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       if (!id->var->init){
-        fprintf(stderr,"1153 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
-        exit(1);
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // 2. vérifier que c'est une matrice
       if (id->var->type != MATRIX){
         fprintf(stderr,"Ligne %d : La variable '%s' n'est pas de type matrix.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // vérifier correspondance dimensions matrice / extract
@@ -1373,13 +1342,13 @@ expr
       for (int i = 0; i < $3.taille; i++) {
         if ($3.liste[i] != -1 && $3.liste[i] >= m->l) {
           fprintf(stderr, "Ligne %d : Indice de ligne out of range.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
         }
       }
       for (int i = 0; i < $6.taille; i++) {
         if ($6.liste[i] != -1 && $6.liste[i] >= m->c) {
           fprintf(stderr, "Ligne %d : Indice de colonne out of range.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
         }
       }
 
@@ -1480,7 +1449,7 @@ expr
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type dans une soustraction.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch($3.ptr->kind){
@@ -1495,7 +1464,7 @@ expr
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type dans une soustraction.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       //Si on a une matrice dans le calcul
@@ -1505,8 +1474,8 @@ expr
 
         // Si 2 matrices : vérifier si elles font la même taille
         if ((type1 == MATRIX && type2 == MATRIX)&&(($1.ptr->var->val.matrix->l != $3.ptr->var->val.matrix->l) || ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->c))){
-          fprintf(stderr,"Incompatibilité entre les tailles de matrice lors d'une soustraction.\n");
-          exit(1);
+          fprintf(stderr,"Ligne %d : Incompatibilité entre les tailles de matrice lors d'une soustraction.\n", nb_ligne);
+          exit(SEMANTIC_FAILURE);
         }
 
           // créer une matrix pour la var temporaire
@@ -1543,7 +1512,7 @@ expr
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type dans une multiplication.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch($3.ptr->kind){
@@ -1558,7 +1527,7 @@ expr
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type dans une multiplication.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
@@ -1570,7 +1539,7 @@ expr
       //Si 2 matrices : vérifier que les tailles sont compatibles
       if ((type1 == MATRIX && type2 == MATRIX) && ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->l)) {
         fprintf(stderr,"Ligne %d : Incompatibilité entre les dimensions de matrices lors d'une multiplication.\n", nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // Créer une matrice pour la variable temporaire
@@ -1613,7 +1582,7 @@ expr
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type dans une division.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       switch($3.ptr->kind){
@@ -1628,7 +1597,7 @@ expr
           break;
         default:
           fprintf(stderr,"Ligne %d : Erreur de type dans une division.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
@@ -1640,7 +1609,7 @@ expr
       //Si 2 matrices : vérifier que les tailles sont compatibles
       if ((type1 == MATRIX && type2 == MATRIX) && ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->l)) {
         fprintf(stderr,"Ligne %d : Incompatibilité entre les dimensions de matrices lors d'une division.\n", nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // Créer une matrice pour la variable temporaire
@@ -1689,7 +1658,7 @@ intervalle
     { 
       if ($1 > $3) {
         fprintf(stderr, "Ligne %d : Dans une extraction, l'indice de gauche doit être inférieur ou égal à l'indice de droite.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
       $$ = creer_liste_extract_intervalle($1,$3);
     }
@@ -1776,7 +1745,7 @@ expr_bool
         break;
       default:
         fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
         break;
     }
 
@@ -1793,7 +1762,7 @@ expr_bool
         break;
       default:
         fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
         break;
       }
 
@@ -1809,7 +1778,7 @@ expr_bool
       */
     } else {
       fprintf(stderr, "Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-      exit(1);
+      exit(SEMANTIC_FAILURE);
     }
 
     
@@ -1831,7 +1800,7 @@ expr_bool
         break;
       default:
         fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
         break;
     }
 
@@ -1848,7 +1817,7 @@ expr_bool
         break;
       default:
         fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
         break;
       }
 
@@ -1864,7 +1833,7 @@ expr_bool
       */
     } else {
       fprintf(stderr, "Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-      exit(1);
+      exit(SEMANTIC_FAILURE);
     }    
     }
 
@@ -1885,7 +1854,7 @@ expr_bool
           break;
         default:
           fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
@@ -1902,7 +1871,7 @@ expr_bool
           break;
         default:
           fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
         }
 
@@ -1918,7 +1887,7 @@ expr_bool
         */
       } else {
         fprintf(stderr, "Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
     }
   | expr GTOE expr 
@@ -1938,7 +1907,7 @@ expr_bool
           break;
         default:
           fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
@@ -1955,7 +1924,7 @@ expr_bool
           break;
         default:
           fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
         }
 
@@ -1971,7 +1940,7 @@ expr_bool
         */
       } else {
         fprintf(stderr, "Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
     }
   | expr EQUAL expr 
@@ -1991,7 +1960,7 @@ expr_bool
           break;
         default:
           fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
@@ -2008,7 +1977,7 @@ expr_bool
           break;
         default:
           fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
         }
 
@@ -2024,7 +1993,7 @@ expr_bool
         */
       } else {
         fprintf(stderr, "Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
     }
   | expr NOT_EQUAL expr 
@@ -2044,7 +2013,7 @@ expr_bool
           break;
         default:
           fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
 
@@ -2061,7 +2030,7 @@ expr_bool
           break;
         default:
           fprintf(stderr,"Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
         }
 
@@ -2077,7 +2046,7 @@ expr_bool
         */
       } else {
         fprintf(stderr, "Ligne %d : Une expression booléenne ne manipule que des expressions correspondant à des int ou des float.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
     }
   ;
@@ -2156,12 +2125,12 @@ init_for
       Symbol * id = symtable_get(SYMTAB,$1);
       if (id == NULL){
         fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       if (id->var->type != NAME && id->var->type != INT){
         fprintf(stderr,"Ligne %d : L'itérateur d'une boucle for doit être de type INT.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       unsigned type2;
@@ -2175,12 +2144,12 @@ init_for
           break;
         default:
           fprintf(stderr,"Ligne %d : L'itérateur d'une boucle for doit être de type INT.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       if (type2 != INT){
         fprintf(stderr,"Ligne %d : L'itérateur d'une boucle for doit être de type INT.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
 
       // marquer que la variable est initialisée
@@ -2229,7 +2198,7 @@ struct_for
       // l'énoncé précise mise à jour de l'itérateur
       if ($3 != $7){
         fprintf(stderr,"Ligne %d : L'itérateur initialisé dans la première partie du for doit être l'itérateur mis à jour dans la troisième partie du for.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
       }
     }
   ;
@@ -2255,7 +2224,7 @@ retour
   | RETURN V_FLOAT SEMICOLON
     {
       fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
-          exit(1);
+      exit(SEMANTIC_FAILURE);
     }
   | RETURN LPAR expr RPAR SEMICOLON
     {
@@ -2270,13 +2239,13 @@ retour
           break;
         default:
           fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyer et le type de la fonction.\n",nb_ligne);
-          exit(1);
+          exit(SEMANTIC_FAILURE);
           break;
       }
       // exactement le même message dans la regle fonction_principale
       if (type1 != INT){
         fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyer et le type de la fonction.\n",nb_ligne);
-        exit(1);
+        exit(SEMANTIC_FAILURE);
         break;
       }
       $$ = $3;
