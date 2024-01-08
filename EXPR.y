@@ -697,8 +697,102 @@ affectation
       $$ = id; // utile pour for
     }
   
-  //| i ++, i-- ...
- 
+  | ID PLUSPLUS 
+    {
+      // sémantique : vérifier que l'id existe
+      Symbol * id = symtable_get(SYMTAB,$1);
+      if ( id == NULL ){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+        exit(1);
+      }
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$1);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      if(!id->var->init){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      Symbol * ptr = symtable_const_int(SYMTAB, 1);
+      gencode(CODE,BOP_PLUS,id,id,ptr);
+      $$ = id; // utile pour for
+    }
+  | PLUSPLUS ID
+    {
+      // sémantique : vérifier que l'id existe
+      Symbol * id = symtable_get(SYMTAB,$2);
+      if ( id == NULL ){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$2);
+        exit(1);
+      }
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$2);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$2);
+        exit(1);
+      }
+
+      if(!id->var->init){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée.\n",nb_ligne,$2);
+        exit(1);
+      }
+
+      Symbol * ptr = symtable_const_int(SYMTAB, 1);
+      gencode(CODE,BOP_PLUS,id,id,ptr);
+      $$ = id; // utile pour for
+    }
+  | ID MINUSMINUS
+    {
+      // sémantique : vérifier que l'id existe
+      Symbol * id = symtable_get(SYMTAB,$1);
+      if ( id == NULL ){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+        exit(1);
+      }
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$1);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      if(!id->var->init){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      Symbol * ptr = symtable_const_int(SYMTAB, 1);
+      gencode(CODE,BOP_MINUS,id,id,ptr);
+      $$ = id; // utile pour for
+    }
+  | MINUSMINUS ID
+    {
+      // sémantique : vérifier que l'id existe
+      Symbol * id = symtable_get(SYMTAB,$2);
+      if ( id == NULL ){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$2);
+        exit(1);
+      }
+      // vérifier qu'on essaye pas de modifier variable globale
+      Symbol * glob = symtable_get(GLOBAL,$2);
+      if ( glob != NULL ){
+        fprintf(stderr,"Ligne %d : La constante '%s' ne peut pas être modifiée.\n",nb_ligne,$2);
+        exit(1);
+      }
+
+      if(!id->var->init){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été initialisée.\n",nb_ligne,$2);
+        exit(1);
+      }
+
+      Symbol * ptr = symtable_const_int(SYMTAB, 1);
+      gencode(CODE,BOP_MINUS,id,id,ptr);
+      $$ = id; // utile pour for
+    }
   ;
 
 
