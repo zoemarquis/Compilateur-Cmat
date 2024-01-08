@@ -37,4 +37,6 @@ int main(){
     test5 = A[2][*;*];
     printf("test5");
     printmat(test5);
+
+    return 0;
 }

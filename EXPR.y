@@ -30,7 +30,7 @@
   Parametres* liste_parametres;
 }
 
-%token CONST NOT AND OR DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE
+%token DOTDOT CONST NOT AND OR DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE
 
 %token PRINT SEMICOLON PLUS MINUS MULT ASSIGN LPAR RPAR
 %token <strval> ID
@@ -48,7 +48,7 @@
 %type<intval> taille cste_int 
 %type<floatval> valeur_matrix cste_float
 %type<matrix> init_matrix liste_matrix_ligne matrix_une_ligne matrix_remplir_colonne 
-%type <exprval> expr expr_bool matrix_litt retour_main retour_fc
+%type <exprval> expr expr_bool matrix_litt retour 
 %type <variable> affectation init_for
 %type<liste_extract> extraction intervalle
 %type<liste_parametres> liste_param
@@ -95,7 +95,7 @@ type_fonction
   ;
 
 fonction 
-  : type_fonction nom_fonction depiler_adresse def_parametre re_empiler_adresse LCURLY suite_instructions retour_fc RCURLY 
+  : type_fonction nom_fonction depiler_adresse def_parametre re_empiler_adresse LCURLY suite_instructions retour RCURLY 
     {
       assert($1 == INT);
       unsigned type1;
@@ -141,7 +141,7 @@ nom_fonction
   ;
 
 fonction_principale 
-  : type_fonction fc_main LPAR RPAR LCURLY suite_instructions retour_main RCURLY 
+  : type_fonction fc_main LPAR RPAR LCURLY suite_instructions retour RCURLY 
     {
       // vérifier que type de retour est int
       unsigned type1;
@@ -158,7 +158,7 @@ fonction_principale
           type1 = FLOAT;
           break;
         default:
-          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
           exit(1);
           break;
       }
@@ -795,8 +795,6 @@ affectation
     }
   ;
 
-
-
 // DÉCLARATION
 declaration_variable
   : type_var liste_var {
@@ -1245,76 +1243,182 @@ expr
       $$.ptr = $2.ptr;
     }
   | ID
-    { 
-      Symbol * id = symtable_get(SYMTAB,$1);
-      if (id==NULL){
-          fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+      { 
+        Symbol * id = symtable_get(SYMTAB,$1);
+        if (id==NULL){
+            fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+            exit(1);
+        }
+        if (!id->var->init){
+          fprintf(stderr,"1045 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
           exit(1);
+        }
+        $$.ptr = id;
       }
-      if (!id->var->init){
-        fprintf(stderr,"1045 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
-        exit(1);
-      }
-      $$.ptr = id;
-    }
   | V_INT
-    { 
-      $$.ptr = symtable_const_int(SYMTAB,$1); 
-    }
+      { 
+        $$.ptr = symtable_const_int(SYMTAB,$1); 
+      }
   | V_FLOAT
-    { 
-      $$.ptr = symtable_const_float(SYMTAB,$1); 
-    }
+      { 
+        $$.ptr = symtable_const_float(SYMTAB,$1); 
+      }
 
   | ID LBRACKET extraction RBRACKET // matrice une dimension
-  {
-    // TODO : si taille de extraction = 1  (et que c'est pas -1)-> float 
+    {
+      // TODO : si taille de extraction = 1  (et que c'est pas -1)-> float 
 
-    // 1. vérifier que ID est déclarée
-    Symbol * id = symtable_get(SYMTAB,$1);
-    if (id == NULL){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-      exit(1);
+      // 1. vérifier que ID est déclarée
+      Symbol * id = symtable_get(SYMTAB,$1);
+      if (id == NULL){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      if (!id->var->init){
+        fprintf(stderr,"1071 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      // 2. vérifier que c'est une matrice
+      if (id->var->type != MATRIX){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'est pas de type matrix.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      // 3. vérifier que c'est bien une matrice une dimension
+      if (id->var->val.matrix->l != 1){
+        fprintf(stderr,"Ligne %d : La matrix '%s' n'est pas de dimension 1.\n",nb_ligne,$1);
+        exit(1);
+      }
+
+      // 4. vérifier correspondance dimensions matrice / extract
+
+        Matrix *m = id->var->val.matrix;
+        for (int i = 0; i < $3.taille; i++) {
+          if ($3.liste[i] != -1 && $3.liste[i] >= m->c) {
+            //fprintf(stderr, "l = %d , c = %d, $3.liste[i] = %d\n", m->l, m->c, $3.liste[i]);
+            fprintf(stderr, "Ligne %d : Indice de colonne out of range.\n",nb_ligne);
+            exit(1);
+          }
+        }
+
+        // pour tous les -1, remplacer par la dimension de ID
+        int *c = (int *) malloc(sizeof(int)* $3.taille);
+        if (c == NULL) { // Échec de l'allocation, gérer l'erreur
+          fprintf(stderr,"Allocation mémoire échouée\n");
+          exit(MEMORY_FAILURE);
+        }
+        int c_taille = 0;
+        int tmp = $3.taille; // pour réallouer la bonne taille
+        for (int i = 0; i < $3.taille; i++){
+          if ($3.liste[i]==-1){
+            tmp += id->var->val.matrix->c;
+            c = (int *)realloc(c, tmp * sizeof(int));
+            if (c == NULL) { // Échec de l'allocation, gérer l'erreur
+              fprintf(stderr,"Allocation mémoire échouée\n");
+              exit(MEMORY_FAILURE);
+            }
+            for (int k = 0; k < id->var->val.matrix->c; k++){
+              c[c_taille] = k;
+              c_taille++;
+            }
+          } else {
+            c[c_taille] = $3.liste[i];
+            c_taille++;
+          }
+        }
+
+      valeur val;
+      if (c_taille == 1){
+        // on va juste chercher le float correspondant (ici le type c'est float et pas matrix)
+        $$.ptr = newtemp(SYMTAB, FLOAT, val);
+        Symbol * t = symtable_indices(SYMTAB,(Indices){0,c[0]});
+        gencode(CODE,GET_ELEMENT,$$.ptr,id,t);
+        free(c);
+      } else {
+        Symbol * colonne = symtable_extract(SYMTAB,(Extract){c,c_taille});
+
+        // créer la matrice temporaire de bonnes dimensions
+        Matrix *mat = create_matrix(1, c_taille);
+        val.matrix = mat;
+        $$.ptr = newtemp(SYMTAB, MATRIX, val);
+    
+        gencode(CODE,EXTR_COLONNE,$$.ptr,id,colonne); 
+      }
+      free($3.liste);
     }
+  | ID LBRACKET extraction RBRACKET LBRACKET extraction RBRACKET // matrice deux dimensions
+    {
+      // 1. vérifier que ID est déclarée
+      Symbol * id = symtable_get(SYMTAB,$1);
+      if (id == NULL){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
+        exit(1);
+      }
 
-    if (!id->var->init){
-      fprintf(stderr,"1071 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
-      exit(1);
-    }
+      if (!id->var->init){
+        fprintf(stderr,"1153 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
+        exit(1);
+      }
 
-    // 2. vérifier que c'est une matrice
-    if (id->var->type != MATRIX){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'est pas de type matrix.\n",nb_ligne,$1);
-      exit(1);
-    }
+      // 2. vérifier que c'est une matrice
+      if (id->var->type != MATRIX){
+        fprintf(stderr,"Ligne %d : La variable '%s' n'est pas de type matrix.\n",nb_ligne,$1);
+        exit(1);
+      }
 
-    // 3. vérifier que c'est bien une matrice une dimension
-    if (id->var->val.matrix->l != 1){
-      fprintf(stderr,"Ligne %d : La matrix '%s' n'est pas de dimension 1.\n",nb_ligne,$1);
-      exit(1);
-    }
-
-    // 4. vérifier correspondance dimensions matrice / extract
-
+      // vérifier correspondance dimensions matrice / extract
       Matrix *m = id->var->val.matrix;
       for (int i = 0; i < $3.taille; i++) {
-        if ($3.liste[i] != -1 && $3.liste[i] >= m->c) {
-          //fprintf(stderr, "l = %d , c = %d, $3.liste[i] = %d\n", m->l, m->c, $3.liste[i]);
+        if ($3.liste[i] != -1 && $3.liste[i] >= m->l) {
+          fprintf(stderr, "Ligne %d : Indice de ligne out of range.\n",nb_ligne);
+          exit(1);
+        }
+      }
+      for (int i = 0; i < $6.taille; i++) {
+        if ($6.liste[i] != -1 && $6.liste[i] >= m->c) {
           fprintf(stderr, "Ligne %d : Indice de colonne out of range.\n",nb_ligne);
           exit(1);
         }
       }
 
-      // pour tous les -1, remplacer par la dimension de ID
-      int *c = (int *) malloc(sizeof(int)* $3.taille);
+      // pour tous les -1, remplacer par la dimension de ID : ligne
+      int *l = (int *) malloc(sizeof(int)* $3.taille);
+      if (l == NULL) { // Échec de l'allocation, gérer l'erreur
+        fprintf(stderr,"Allocation mémoire échouée\n");
+        exit(MEMORY_FAILURE);
+      }
+      int l_taille = 0;
+      int tmp = $3.taille; // pour réallouer la bonne taille
+      for (int i = 0; i < $3.taille; i++){
+        if ($3.liste[i]==-1){
+          tmp += id->var->val.matrix->l;
+          l = (int *)realloc(l, tmp * sizeof(int));
+          if (l == NULL) { // Échec de l'allocation, gérer l'erreur
+            fprintf(stderr,"Allocation mémoire échouée\n");
+            exit(MEMORY_FAILURE);
+          }
+          for (int k = 0; k < id->var->val.matrix->l; k++){
+            l[l_taille] = k;
+            l_taille++;
+          }
+        } else {
+          l[l_taille] = $3.liste[i];
+          l_taille++;
+        }
+      }
+
+      // pour tous les -1, remplacer par la dimension de ID : colonne
+      int *c = (int *) malloc(sizeof(int)* $6.taille);
       if (c == NULL) { // Échec de l'allocation, gérer l'erreur
         fprintf(stderr,"Allocation mémoire échouée\n");
         exit(MEMORY_FAILURE);
       }
       int c_taille = 0;
-      int tmp = $3.taille; // pour réallouer la bonne taille
-      for (int i = 0; i < $3.taille; i++){
-        if ($3.liste[i]==-1){
+      tmp = $6.taille;
+      for (int i = 0; i < $6.taille; i++){
+        if ($6.liste[i]==-1){
           tmp += id->var->val.matrix->c;
           c = (int *)realloc(c, tmp * sizeof(int));
           if (c == NULL) { // Échec de l'allocation, gérer l'erreur
@@ -1326,145 +1430,39 @@ expr
             c_taille++;
           }
         } else {
-          c[c_taille] = $3.liste[i];
+          c[c_taille] = $6.liste[i];
           c_taille++;
         }
       }
 
-    valeur val;
-    if (c_taille == 1){
-      // on va juste chercher le float correspondant (ici le type c'est float et pas matrix)
-      $$.ptr = newtemp(SYMTAB, FLOAT, val);
-      Symbol * t = symtable_indices(SYMTAB,(Indices){0,c[0]});
-      gencode(CODE,GET_ELEMENT,$$.ptr,id,t);
-      free(c);
-    } else {
-      Symbol * colonne = symtable_extract(SYMTAB,(Extract){c,c_taille});
-
-      // créer la matrice temporaire de bonnes dimensions
-      Matrix *mat = create_matrix(1, c_taille);
-      val.matrix = mat;
-      $$.ptr = newtemp(SYMTAB, MATRIX, val);
-  
-      gencode(CODE,EXTR_COLONNE,$$.ptr,id,colonne); 
-    }
-    free($3.liste);
-  }
-  | ID LBRACKET extraction RBRACKET LBRACKET extraction RBRACKET // matrice deux dimensions
-  {
-    // 1. vérifier que ID est déclarée
-    Symbol * id = symtable_get(SYMTAB,$1);
-    if (id == NULL){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'a jamais été déclarée.\n",nb_ligne,$1);
-      exit(1);
-    }
-
-    if (!id->var->init){
-      fprintf(stderr,"1153 : Ligne %d : La variable '%s' n'a jamais été initialisée, elle ne peut donc pas être utilisée dans une expression.\n",nb_ligne,$1);
-      exit(1);
-    }
-
-    // 2. vérifier que c'est une matrice
-    if (id->var->type != MATRIX){
-      fprintf(stderr,"Ligne %d : La variable '%s' n'est pas de type matrix.\n",nb_ligne,$1);
-      exit(1);
-    }
-
-    // vérifier correspondance dimensions matrice / extract
-    Matrix *m = id->var->val.matrix;
-    for (int i = 0; i < $3.taille; i++) {
-      if ($3.liste[i] != -1 && $3.liste[i] >= m->l) {
-        fprintf(stderr, "Ligne %d : Indice de ligne out of range.\n",nb_ligne);
-        exit(1);
-      }
-    }
-    for (int i = 0; i < $6.taille; i++) {
-      if ($6.liste[i] != -1 && $6.liste[i] >= m->c) {
-        fprintf(stderr, "Ligne %d : Indice de colonne out of range.\n",nb_ligne);
-        exit(1);
-      }
-    }
-
-    // pour tous les -1, remplacer par la dimension de ID : ligne
-    int *l = (int *) malloc(sizeof(int)* $3.taille);
-    if (l == NULL) { // Échec de l'allocation, gérer l'erreur
-      fprintf(stderr,"Allocation mémoire échouée\n");
-      exit(MEMORY_FAILURE);
-    }
-    int l_taille = 0;
-    int tmp = $3.taille; // pour réallouer la bonne taille
-    for (int i = 0; i < $3.taille; i++){
-      if ($3.liste[i]==-1){
-        tmp += id->var->val.matrix->l;
-        l = (int *)realloc(l, tmp * sizeof(int));
-        if (l == NULL) { // Échec de l'allocation, gérer l'erreur
-          fprintf(stderr,"Allocation mémoire échouée\n");
-          exit(MEMORY_FAILURE);
-        }
-        for (int k = 0; k < id->var->val.matrix->l; k++){
-          l[l_taille] = k;
-          l_taille++;
-        }
+      if (l_taille == 1 && c_taille == 1){
+        // on va juste chercher le float correspondant (ici le type c'est float et pas matrix)
+        valeur val;
+        $$.ptr = newtemp(SYMTAB, FLOAT, val);
+        Symbol * t = symtable_indices(SYMTAB,(Indices){l[0],c[0]});
+        gencode(CODE,GET_ELEMENT,$$.ptr,id,t);
+        free(l);
+        free(c);
       } else {
-        l[l_taille] = $3.liste[i];
-        l_taille++;
+        Symbol * ligne = symtable_extract(SYMTAB,(Extract){l,l_taille});
+        // créer la matrice temporaire de bonnes dimensions
+        Matrix *mat1 = create_matrix(l_taille, m->c);
+        valeur val1;
+        val1.matrix = mat1;
+        Symbol * intermediaire = newtemp(SYMTAB, MATRIX, val1);
+        gencode(CODE,EXTR_LIGNE,intermediaire,id,ligne); 
+
+        Symbol * colonne = symtable_extract(SYMTAB,(Extract){c,c_taille});
+        // créer la matrice temporaire de bonnes dimensions
+        Matrix *mat2 = create_matrix(l_taille, c_taille);
+        valeur val2;
+        val2.matrix = mat2;
+        $$.ptr = newtemp(SYMTAB, MATRIX, val2);
+        gencode(CODE,EXTR_COLONNE,$$.ptr,intermediaire,colonne); 
       }
+      free($3.liste);
+      free($6.liste);
     }
-
-    // pour tous les -1, remplacer par la dimension de ID : colonne
-    int *c = (int *) malloc(sizeof(int)* $6.taille);
-    if (c == NULL) { // Échec de l'allocation, gérer l'erreur
-      fprintf(stderr,"Allocation mémoire échouée\n");
-      exit(MEMORY_FAILURE);
-    }
-    int c_taille = 0;
-    tmp = $6.taille;
-    for (int i = 0; i < $6.taille; i++){
-      if ($6.liste[i]==-1){
-        tmp += id->var->val.matrix->c;
-        c = (int *)realloc(c, tmp * sizeof(int));
-        if (c == NULL) { // Échec de l'allocation, gérer l'erreur
-          fprintf(stderr,"Allocation mémoire échouée\n");
-          exit(MEMORY_FAILURE);
-        }
-        for (int k = 0; k < id->var->val.matrix->c; k++){
-          c[c_taille] = k;
-          c_taille++;
-        }
-      } else {
-        c[c_taille] = $6.liste[i];
-        c_taille++;
-      }
-    }
-
-    if (l_taille == 1 && c_taille == 1){
-      // on va juste chercher le float correspondant (ici le type c'est float et pas matrix)
-      valeur val;
-      $$.ptr = newtemp(SYMTAB, FLOAT, val);
-      Symbol * t = symtable_indices(SYMTAB,(Indices){l[0],c[0]});
-      gencode(CODE,GET_ELEMENT,$$.ptr,id,t);
-      free(l);
-      free(c);
-    } else {
-      Symbol * ligne = symtable_extract(SYMTAB,(Extract){l,l_taille});
-      // créer la matrice temporaire de bonnes dimensions
-      Matrix *mat1 = create_matrix(l_taille, m->c);
-      valeur val1;
-      val1.matrix = mat1;
-      Symbol * intermediaire = newtemp(SYMTAB, MATRIX, val1);
-      gencode(CODE,EXTR_LIGNE,intermediaire,id,ligne); 
-
-      Symbol * colonne = symtable_extract(SYMTAB,(Extract){c,c_taille});
-      // créer la matrice temporaire de bonnes dimensions
-      Matrix *mat2 = create_matrix(l_taille, c_taille);
-      valeur val2;
-      val2.matrix = mat2;
-      $$.ptr = newtemp(SYMTAB, MATRIX, val2);
-      gencode(CODE,EXTR_COLONNE,$$.ptr,intermediaire,colonne); 
-    }
-    free($3.liste);
-    free($6.liste);
-  }
 
   | expr MINUS expr
     { 
@@ -1511,23 +1509,23 @@ expr
           exit(1);
         }
 
-        // créer une matrix pour la var temporaire
-      if (type1 == MATRIX){
-        Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $1.ptr->var->val.matrix->c);
-        val.matrix = m;
-      } else {
-        Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
-        val.matrix = m;
+          // créer une matrix pour la var temporaire
+        if (type1 == MATRIX){
+          Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $1.ptr->var->val.matrix->c);
+          val.matrix = m;
+        } else {
+          Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
+          val.matrix = m;
+        }
       }
-    }
-    else if (type1 == FLOAT || type2 == FLOAT) 
-      type = FLOAT;
-    else 
-      type = INT;
+      else if (type1 == FLOAT || type2 == FLOAT) 
+        type = FLOAT;
+      else 
+        type = INT;
 
-    $$.ptr = newtemp(SYMTAB, type, val);
-    gencode(CODE,BOP_MINUS,$$.ptr,$1.ptr,$3.ptr); 
-  }
+      $$.ptr = newtemp(SYMTAB, type, val);
+      gencode(CODE,BOP_MINUS,$$.ptr,$1.ptr,$3.ptr); 
+    }
 
   | expr MULT expr
     {
@@ -1599,7 +1597,7 @@ expr
       gencode(CODE,BOP_MULT,$$.ptr,$1.ptr,$3.ptr); 
     }
 
-    | expr DIV expr
+  | expr DIV expr
     {
       //Vérification des types des opérateurs
       unsigned type1, type2, type;
@@ -1671,11 +1669,13 @@ expr
 
 
 
+  
   //| MINUS expr %prec UMINUS
     /*{ 
       $$.ptr = newtemp(SYMTAB);
       gencode(CODE,UOP_MINUS,$$.ptr,$2.ptr,NULL); 
     }*/
+  | TILDE expr 
   ; 
 
 extraction 
@@ -1685,15 +1685,16 @@ extraction
 
 intervalle 
   : MULT  { $$ = creer_liste_extract(-1); }
-  | V_INT { $$ = creer_liste_extract($1) ; }
-  | V_INT DOT DOT V_INT 
+  | V_INT DOTDOT V_INT 
     { 
-      if ($1 > $4) {
+      if ($1 > $3) {
         fprintf(stderr, "Ligne %d : Dans une extraction, l'indice de gauche doit être inférieur ou égal à l'indice de droite.\n",nb_ligne);
         exit(1);
       }
-      creer_liste_extract_intervalle($1,$4);
+      $$ = creer_liste_extract_intervalle($1,$3);
     }
+  | V_INT { $$ = creer_liste_extract($1) ; }
+  
   ;
 
 // STRUCTURES DE CONTROLE
@@ -2246,51 +2247,14 @@ bloc
   ;
 
 // RETURN
-retour_fc
-    : RETURN V_INT SEMICOLON
-      {
-        $$.ptr = symtable_const_int(SYMTAB,$2); 
-      }
-    | RETURN V_FLOAT SEMICOLON
-      {
-        fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
-        exit(1);
-      }
-    | RETURN LPAR expr RPAR SEMICOLON
-    {
-      // vérifier que c'est soit un int ou un float
-      unsigned type1;
-      switch($3.ptr->kind){
-        case(NAME):
-          assert($3.ptr->var->init);
-          type1 = $3.ptr->var->type;
-          break;
-        case(CONST_INT):
-          type1 = INT;
-          break;
-        default:
-          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
-          exit(1);
-          break;
-      }
-      if (type1 != INT && type1 != FLOAT){
-        fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
-        exit(1);
-        break;
-      }
-      
-      $$ = $3;
-    }
-  ;
-
-retour_main
+retour
   : RETURN V_INT SEMICOLON
     {
       $$.ptr = symtable_const_int(SYMTAB,$2); 
     }
   | RETURN V_FLOAT SEMICOLON
     {
-      fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int ou des float seulement.\n",nb_ligne);
+      fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
           exit(1);
     }
   | RETURN LPAR expr RPAR SEMICOLON

@@ -1,0 +1,21 @@
+int main() {
+  int i;
+  int jj = 0;
+
+  /* erreur : itérateur doit etre le meme dans la partie un et trois du for */
+
+  for (i = 0; i < 10; jj++) {
+    print(i);
+    printf("\n");
+    for (jj = 10; jj < 10; jj = jj + 1) {
+      print(jj);
+      printf("\n");
+    }
+  }
+
+  printf("sortie de boucle : i = ");
+  print(i);
+  printf("\n");
+
+  return 0;
+}

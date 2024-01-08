@@ -1,0 +1,13 @@
+const int MAX = 10;
+
+int main() {
+  int i;
+  int jj;
+
+  for (i = 0; i < MAX; i++) {
+    print(i);
+    printf("\n");
+  }
+
+  return 0;
+}

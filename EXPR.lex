@@ -14,12 +14,14 @@ DIGIT    [0-9]
 
 ID [_a-zA-Z][_a-zA-Z0-9]*
 INT 0|[1-9]{DIGIT}*
-FLOAT {INT}?\.{DIGIT}*|{INT}?(\.{DIGIT}*)?[eE][\-\+]?{INT}
+FLOAT {INT}?\.{DIGIT}+|{INT}?(\.{DIGIT}*)?[eE][\-\+]?{INT}
 COMMENT \/\*([^\*]|\*+[^\/])*\*\/
 SINGLECOMMENT \/\/.*
 STRING \"([^"])*\"
 
 %%
+
+\.\.                                        { return DOTDOT; }
 "main"                                      { return MAIN;}
 "const"                                     { return CONST;}
 "printf"                                    { return PRINTF;}
@@ -44,7 +46,7 @@ STRING \"([^"])*\"
 "&&"                                         { return AND; }
 "!"                                         { return NOT; }
 
-"\."                                        { return DOT; }
+"."                                        { return DOT; }
 "="                                         { return ASSIGN; }
 "~"                                         { return TILDE;}
 "++"                                        { return PLUSPLUS;}

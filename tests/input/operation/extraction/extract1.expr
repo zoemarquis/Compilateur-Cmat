@@ -3,4 +3,6 @@ int main(){
     matrix Bob[7];
     Bob = Anne[*;1;2;0;1];
     printmat(Bob);
+    return 0;
 }
+/* OK */
