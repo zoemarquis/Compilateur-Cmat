@@ -4,10 +4,10 @@ CFLAGS=-g -fcommon
 
 all: cmat
 
-cmat: cmat.c EXPR.tab.o lex.yy.o parametre.o matrix.o pile.o hashtab.o symbtab.o generation.o
+cmat: cmat.c EXPR.tab.o lex.yy.o parametre.o variable.o matrix.o pile.o hashtab.o symbtab.o generation.o
 	${CC} -o $@ $^
 
-EXPR.tab.o: EXPR.tab.c error.h parametre.h matrix.h pile.h hashtab.h symbtab.h generation.h
+EXPR.tab.o: EXPR.tab.c error.h parametre.h variable.h matrix.h pile.h hashtab.h symbtab.h generation.h
 
 EXPR.tab.c: EXPR.y
 	bison -d $<
@@ -19,6 +19,10 @@ lex.yy.c: EXPR.lex EXPR.tab.c
 
 parametre.o: CFLAGS+=-Wall -Wextra
 parametre.o: parametre.c parametre.h
+	${CC} ${CFLAGS} -c $< -o $@
+
+variable.o: CFLAGS+=-Wall -Wextra
+variable.o: variable.c variable.h symbtab.h
 	${CC} ${CFLAGS} -c $< -o $@
 
 matrix.o: CFLAGS+=-Wall -Wextra
