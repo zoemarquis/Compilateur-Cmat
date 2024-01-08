@@ -14,4 +14,7 @@ int main() {
 
   printf("d : ");
   printmat(d);
+
+  return 0;
 }
+/* OK */

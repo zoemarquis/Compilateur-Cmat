@@ -8,6 +8,7 @@ typedef struct _quad {
     BOP_PLUS,
     BOP_MINUS,
     BOP_MULT,
+    BOP_DIV,
     UOP_MINUS,
     COPY,
     EXTR_LIGNE,

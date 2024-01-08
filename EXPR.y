@@ -1505,6 +1505,74 @@ expr
       gencode(CODE,BOP_MULT,$$.ptr,$1.ptr,$3.ptr); 
     }
 
+    | expr DIV expr
+    {
+      //Vérification des types des opérateurs
+      unsigned type1, type2, type;
+      switch($1.ptr->kind){
+        case(NAME):
+          type1 = $1.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une division.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+      switch($3.ptr->kind){
+        case(NAME):
+          type2 = $3.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type2 = INT;
+          break;
+        case(CONST_FLOAT):
+          type2 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une division.\n",nb_ligne);
+          exit(1);
+          break;
+      }
+
+      //Vérification sur les matrices, s'il y en a
+      valeur val;
+      if (type1 == MATRIX || type2 == MATRIX) {
+        type = MATRIX;
+
+      //Si 2 matrices : vérifier que les tailles sont compatibles
+      if ((type1 == MATRIX && type2 == MATRIX) && ($1.ptr->var->val.matrix->c != $3.ptr->var->val.matrix->l)) {
+        fprintf(stderr,"Ligne %d : Incompatibilité entre les dimensions de matrices lors d'une division.\n", nb_ligne);
+        exit(1);
+      }
+
+      // Créer une matrice pour la variable temporaire
+      if (type1 == MATRIX && type2 == MATRIX){
+        Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
+        val.matrix = m;
+      }
+      else if (type1 == MATRIX){
+        Matrix *m = create_matrix($1.ptr->var->val.matrix->l, $1.ptr->var->val.matrix->c);
+        val.matrix = m;
+      } else {
+        Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
+        val.matrix = m;
+      }
+
+      // TODO : vérif
+
+      } else {
+        type = FLOAT; // un entier / par un entier -> un float
+      }
+      $$.ptr = newtemp(SYMTAB, type, val);
+      gencode(CODE,BOP_DIV,$$.ptr,$1.ptr,$3.ptr); 
+    }
+
 
 
 
