@@ -2,7 +2,6 @@
 %{
   #include "cmat.h" // pas besoin ?
   #include "error.h"
-  #include "parametre.h"
   #include "symbtab.h"
   #include "generation.h"
   #include "hashtab.h"

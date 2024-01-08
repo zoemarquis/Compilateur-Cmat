@@ -4,18 +4,15 @@
 #include <stdbool.h>
 
 #include "error.h"
+#include "extract.h"
 #include "matrix.h"
+#include "parametre.h"
 #include "uthash.h"
 #include "variable.h"
 
 typedef char nom_var[16];
 typedef char nom_var_fonction[32];
 typedef char nom_fonction[16];
-
-typedef struct _extract {
-  int *liste;
-  unsigned int taille;
-} Extract;
 
 typedef struct _tuple {
   int ligne;
@@ -77,13 +74,5 @@ Symbol *symtable_put(SymTable *t, char *id, struct _var *var);
 void symtable_dump(SymTable *t);
 
 void symtable_free(SymTable *t);
-
-// extraction
-
-Extract creer_liste_extract(int valeur);
-
-Extract creer_liste_extract_intervalle(int vmin, int vmax);
-
-Extract concat_extract_liste(Extract e1, Extract e2);
 
 #endif

@@ -1,6 +1,5 @@
 %{
     #include "generation.h"
-    #include "parametre.h"
     #include "symbtab.h"
     #include "EXPR.tab.h"
     #include "error.h"
