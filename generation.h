@@ -1,6 +1,7 @@
 #ifndef GENERATION_H
 #define GENERATION_H
 
+#include "parametre.h"
 #include "symbtab.h"
 
 typedef struct _quad {

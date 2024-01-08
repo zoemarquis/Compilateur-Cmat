@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "generation.h"
+#include "parametre.h"
 #include "symbtab.h"
 
 extern SymTable* SYMTAB;

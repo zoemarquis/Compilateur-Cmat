@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "parametre.h"
 #include "symbtab.h"
 #include "uthash.h"
 

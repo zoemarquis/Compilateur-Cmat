@@ -2,6 +2,7 @@
 %{
   #include "cmat.h" // pas besoin ?
   #include "error.h"
+  #include "parametre.h"
   #include "symbtab.h"
   #include "generation.h"
   #include "hashtab.h"
@@ -27,7 +28,7 @@
   Matrix* matrix;
   char * string;
   Extract liste_extract;
-  Parametres* liste_parametres;
+  struct _param * liste_parametres;
 }
 
 %token DOTDOT CONST NOT AND OR DOT MAIN PRINTF PRINTMAT MATRIX INT FLOAT IF ELSE WHILE FOR TILDE PLUSPLUS MINUSMINUS DIV LCURLY RCURLY LBRACKET RBRACKET COMMA EQUAL QUOTE APOSTROPHE BACKSLASH RETURN EXIT  NOT_EQUAL LESS_THAN GREATER_THAN LTOE GTOE

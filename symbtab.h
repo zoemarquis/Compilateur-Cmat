@@ -5,6 +5,7 @@
 
 #include "error.h"
 #include "matrix.h"
+// #include "parametre.h"
 #include "uthash.h"
 
 typedef char nom_var[16];
@@ -60,17 +61,19 @@ typedef struct _symbol {
   };
 } Symbol;
 
+/*
 typedef struct _param {
   Symbol **liste;
   unsigned nb;
 } Parametres;
+*/
 
 typedef struct _symtable {
   unsigned int capacity;
   unsigned int temporary;
   unsigned int size;
   Symbol *symbols;
-  Parametres *param;
+  struct _param *param;
   nom_fonction nom;
   unsigned type_fonction;
   UT_hash_handle hh;
@@ -132,11 +135,13 @@ variable **ajouter_var_liste(variable **liste, unsigned taille, variable
 
 void delete_var(variable *var);
 
+/*
 // Paramètres
 Parametres *add_parametre(Parametres *p, Symbol *s);
 
 Symbol *get_parametre(Parametres p, unsigned indice);
 
 Parametres *init_param();
+*/
 
 #endif
