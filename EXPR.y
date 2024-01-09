@@ -40,7 +40,7 @@
 
 %left MULT DIV EQUAL NOT_EQUAL OR AND
 %left PLUS MINUS GTOE LTOE GREATER_THAN LESS_THAN
-%nonassoc UMINUS NOT //LPAR RPAR
+%nonassoc UMINUS TILDE NOT
 
 %type <type> type_var type_fonction
 %type<l_var> liste_var
