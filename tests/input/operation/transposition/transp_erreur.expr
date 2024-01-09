@@ -16,6 +16,9 @@ int main(){
 
     /* erreur taille */
     /* matrix d[3][3] = ~c;*/
-    
-    return 0;
+
+    c = c[0;1][*];
+    printmat(c);
+
+    return 3;
 }

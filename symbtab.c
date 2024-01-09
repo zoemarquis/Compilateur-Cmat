@@ -48,41 +48,50 @@ static void symtable_grow(SymTable *t) {
 }
 
 Symbol *symtable_const_int(SymTable *t, int v) {
-  /*unsigned int i;
-  for (i = 0; i < t->size && t->symbols[i].const_int != v; i++)
-    ;
-  if (i == t->size) {*/
-  if (t->size == t->capacity) symtable_grow(t);
-  Symbol *s = &(t->symbols[t->size]);
-  s->kind = CONST_INT;
-  sprintf(s->name, "%s%d", "cint", const_int_num);
-  const_int_num++;
-  s->const_int = v;
-  sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
-  ++(t->size);
-  return s;
-  /*} else {
+  unsigned int i;
+  for (i = 0; i < t->size /*&& t->symbols[i].const_int != v*/; i++) {
+    if (t->symbols[i].const_int == v && CONST_INT == t->symbols[i].kind) break;
+    // CONFLITS AVEC INDICES QUI SONT DES INT AUSSI
+    /*
+    if (t->symbols[i].const_int == v) {
+      fprintf(stderr, "type : %d\n", t->symbols[i].kind);
+      fprintf(stderr, "EXTRACT : %d\n", EXTRACT);
+      fprintf(stderr, "INDICES : %d\n", INDICES);
+    }
+    */
+  }
+  if (i == t->size) {
+    if (t->size == t->capacity) symtable_grow(t);
+    Symbol *s = &(t->symbols[t->size]);
+    s->kind = CONST_INT;
+    sprintf(s->name, "%s%d", "cint", const_int_num);
+    const_int_num++;
+    s->const_int = v;
+    sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
+    ++(t->size);
+    return s;
+  } else {
     return &(t->symbols[i]);
-  }*/
+  }
 }
 
 Symbol *symtable_const_float(SymTable *t, float v) {
-  /*unsigned int i;
+  unsigned int i;
   for (i = 0; i < t->size && t->symbols[i].const_float != v; i++)
     ;
-  if (i == t->size) {*/
-  if (t->size == t->capacity) symtable_grow(t);
-  Symbol *s = &(t->symbols[t->size]);
-  s->kind = CONST_FLOAT;
-  sprintf(s->name, "%s%d", "cflt", const_float_num);
-  const_float_num++;
-  s->const_float = v;
-  sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
-  ++(t->size);
-  return s;
-  /*} else {
+  if (i == t->size) {
+    if (t->size == t->capacity) symtable_grow(t);
+    Symbol *s = &(t->symbols[t->size]);
+    s->kind = CONST_FLOAT;
+    sprintf(s->name, "%s%d", "cflt", const_float_num);
+    const_float_num++;
+    s->const_float = v;
+    sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
+    ++(t->size);
+    return s;
+  } else {
     return &(t->symbols[i]);
-  }*/
+  }
 }
 
 Symbol *symtable_string(SymTable *t, char *string) {
