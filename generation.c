@@ -532,13 +532,12 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         fprintf(OUTPUT, "\t\tbge $t5, $t3, ligne_suivante_sub_%d\n", cpt_label);
 
         // Soustraction
+        fprintf(OUTPUT, "\t\tlwc1 $f2, 0($a0)\n");
         if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
           // Matrice - constante
-          fprintf(OUTPUT, "\t\tlwc1 $f2, 0($a0)\n");
           fprintf(OUTPUT, "\t\tsub.s $f3, $f2, $f1\n");
         } else {
           // Constante - matrice
-          fprintf(OUTPUT, "\t\tlwc1 $f2, 0($a0)\n");
           fprintf(OUTPUT, "\t\tsub.s $f3, $f1, $f2\n");
         }
 
@@ -865,38 +864,35 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         nom_var_fonction cst;
         unsigned type = 0;
 
-        // Cas : matrice * constante
+        // Cas : matrice / constante
         if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
           strcpy(mat, q->sym2->nom_var_fc);
           strcpy(cst, q->sym3->nom_var_fc);
           if (q->sym3->kind == NAME) {
             type = q->sym3->var->type;
           } else {
-            if (q->sym3->kind ==
-                CONST_INT)  // Vérifier que q->sym2->kind == CONST_INT aussi ??
+            if (q->sym3->kind == CONST_INT)
               type = INT;
             else if (q->sym3->kind == CONST_FLOAT)
               type = FLOAT;
             else {
-              fprintf(stderr,
-                      "Incompatibilité de types dans une multiplication.\n");
+              fprintf(stderr, "Incompatibilité de types dans une division.\n");
               exit(SEMANTIC_FAILURE);
             }
           }
         } else {
+          // Cas : constante / matrice
           strcpy(mat, q->sym3->nom_var_fc);
           strcpy(cst, q->sym2->nom_var_fc);
           if (q->sym2->kind == NAME) {
             type = q->sym2->var->type;
           } else {
-            if (q->sym2->kind ==
-                CONST_INT)  // Vérifier que q->sym3->kind == CONST_INT aussi ??
+            if (q->sym2->kind == CONST_INT)
               type = INT;
             else if (q->sym2->kind == CONST_FLOAT)
               type = FLOAT;
             else {
-              fprintf(stderr,
-                      "Incompatibilité de types dans une multiplication.\n");
+              fprintf(stderr, "Incompatibilité de types dans une division.\n");
               exit(SEMANTIC_FAILURE);
             }
           }
@@ -915,17 +911,23 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         fprintf(OUTPUT, "\tlw $t3, %s_cols\n", mat);
 
         fprintf(OUTPUT, "\tli $t4, 0\n");
-        fprintf(OUTPUT, "boucle_mult_matrice_cst_ligne_%d:\n", cpt_label);
-        fprintf(OUTPUT, "\tbge $t4, $t2, fin_mult_%d\n", cpt_label);
+        fprintf(OUTPUT, "boucle_div_matrice_cst_ligne_%d:\n", cpt_label);
+        fprintf(OUTPUT, "\tbge $t4, $t2, fin_div_%d\n", cpt_label);
 
         fprintf(OUTPUT, "\tli $t5, 0\n");
-        fprintf(OUTPUT, "\tboucle_mult_matrice_cst_colonne_%d:\n", cpt_label);
-        fprintf(OUTPUT, "\t\tbge $t5, $t3, ligne_suivante_mult_%d\n",
-                cpt_label);
+        fprintf(OUTPUT, "\tboucle_div_matrice_cst_colonne_%d:\n", cpt_label);
+        fprintf(OUTPUT, "\t\tbge $t5, $t3, ligne_suivante_div_%d\n", cpt_label);
 
-        // Multiplication
         fprintf(OUTPUT, "\t\tlwc1 $f2, 0($a0)\n");
-        fprintf(OUTPUT, "\t\tdiv.s $f3, $f2, $f1\n");
+        // fprintf(OUTPUT, "\t\tdiv.s $f3, $f2, $f1\n");
+        if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
+          // Matrice / constante
+          fprintf(OUTPUT, "\t\tdiv.s $f3, $f2, $f1\n");
+        } else {
+          // Constante / matrice
+          fprintf(OUTPUT, "\t\tdiv.s $f3, $f1, $f2\n");
+        }
+
         fprintf(OUTPUT, "\t\tswc1 $f3, 0($a1)\n");  // Stockage du résultat
 
         fprintf(OUTPUT, "\t\taddi $a0, $a0, 4\n");
@@ -933,20 +935,19 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         fprintf(OUTPUT, "\t\taddi $t5, $t5, 1\n");
 
         // Prochain élément ligne
-        fprintf(OUTPUT, "\t\tj boucle_mult_matrice_cst_colonne_%d\n",
-                cpt_label);
-        fprintf(OUTPUT, "\tligne_suivante_mult_%d:\n", cpt_label);
+        fprintf(OUTPUT, "\t\tj boucle_div_matrice_cst_colonne_%d\n", cpt_label);
+        fprintf(OUTPUT, "\tligne_suivante_div_%d:\n", cpt_label);
 
         // Prochaine ligne
         fprintf(OUTPUT, "\t\taddi $t4, $t4, 1\n");
-        fprintf(OUTPUT, "\t\tj boucle_mult_matrice_cst_ligne_%d\n", cpt_label);
+        fprintf(OUTPUT, "\t\tj boucle_div_matrice_cst_ligne_%d\n", cpt_label);
 
         // Fin
-        fprintf(OUTPUT, "fin_mult_%d:\n", cpt_label);
+        fprintf(OUTPUT, "fin_div_%d:\n", cpt_label);
         cpt_label++;
       }
 
-      // Cas : constante * constante
+      // Cas : constante / constante
       else {
         // Opérateur 1
         // Si l'opérateur 1 est un entier
@@ -977,7 +978,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         }
 
         /*
-        // Multiplication de 2 entiers
+        // Div de 2 entiers
         if (type1 == INT && type2 == INT) {
           fprintf(OUTPUT,"\tdiv $t0,$t0,$t1\n");
           fprintf(OUTPUT,"\tsw $t0, %s\n", q->sym1->nom_var_fc);
