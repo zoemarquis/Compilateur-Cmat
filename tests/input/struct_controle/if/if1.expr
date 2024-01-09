@@ -1,6 +1,8 @@
 int main(){
-    if (4.5){
+    if (1 > 2){
         printf("faux\n");
     }
     printf("dans main \n");
+
+    return 0;
 }

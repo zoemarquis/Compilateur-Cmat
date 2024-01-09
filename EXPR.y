@@ -58,170 +58,15 @@
 %%
 
 Start 
-  : %empty
-  | def_constantes fonction_principale
-  | def_constantes fonction fonction_principale
-  | def_constantes fonction fonction fonction_principale
+  : def_constantes suite_fonctions
   ;
 
-/*
 suite_fonctions
-  : fonction
+  : fonction_principale
   | fonction suite_fonctions
   ;
-*/
 
-depiler_adresse
-  : LPAR
-    { 
-      gencode(CODE, DEPILER_ADRESSE, NULL, NULL, NULL);
-    }
-  ;
-
-re_empiler_adresse
-  : RPAR
-    {
-      gencode(CODE, RE_EMPILER_ADRESSE, NULL, NULL, NULL);
-    }
-  ;
-
-type_fonction
-  : INT       { $$ = INT; }
-  | FLOAT     
-    { 
-      fprintf(stderr,"Ligne %d : Déclaration de fonction de type de retour INT uniquement.\n",nb_ligne);
-      exit(SEMANTIC_FAILURE);
-    }
-  ;
-
-fonction 
-  : type_fonction nom_fonction depiler_adresse def_parametre re_empiler_adresse LCURLY suite_instructions retour RCURLY 
-    {
-      assert($1 == INT);
-      unsigned type1;
-      switch($8.ptr->kind){
-        case(NAME):
-          assert($8.ptr->var->init);
-          type1 = $8.ptr->var->type;
-          break;
-        case(CONST_INT):
-          type1 = INT;
-          break;
-        default:
-          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
-          exit(SEMANTIC_FAILURE);
-          break;
-      }
-      if (type1 != $1){
-        fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyée et le type de la fonction.\n",nb_ligne);
-        exit(SEMANTIC_FAILURE);
-        break;
-      }
-
-      gencode(CODE, RETOUR_FC, $8.ptr, NULL, NULL);
-      gencode(CODE, JR, NULL, NULL, NULL);
-    }
-  ;
-
-nom_fonction 
-  : ID 
-    {
-      // vérifier qu'une fonction portant ce nom n'existe pas déjà
-      SymTable * s = get_symtable($1);
-      if (s != NULL){
-        fprintf(stderr,"Ligne %d : Une fonction portant le nom '%s' est déjà déclarée.\n",nb_ligne,$1);
-        exit(SEMANTIC_FAILURE);
-      }
-      // création de la table des symboles pour cette fonction
-      SYMTAB = symtable_new($1);
-      add_symtable(SYMTAB);
-      add_fonction($1);
-      gencode(CODE, LABEL_FC, NULL, NULL, NULL);
-    }
-  ;
-
-fonction_principale 
-  : type_fonction fc_main LPAR RPAR LCURLY suite_instructions retour RCURLY 
-    {
-      // vérifier que type de retour est int
-      unsigned type1;
-
-      switch($7.ptr->kind){
-        case(NAME):
-          assert($7.ptr->var->init);
-          type1 = $7.ptr->var->type;
-          break;
-        case(CONST_INT):
-          type1 = INT;
-          break;
-        case(CONST_FLOAT):
-          type1 = FLOAT;
-          break;
-        default:
-          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
-          exit(SEMANTIC_FAILURE);
-          break;
-      }
-
-      if (type1 != INT){
-        fprintf(stderr,"Ligne %d : Incompatibilité de type de la fonction return.\n",nb_ligne);
-        exit(SEMANTIC_FAILURE);
-        break;
-      }
-
-    }
-  ; 
-
-fc_main
-  : MAIN 
-    {
-      nom_fonction nf;
-      strncpy(nf,"main",15);
-      SYMTAB = symtable_new("main");
-      add_symtable(SYMTAB);
-      add_fonction(nf);
-      gencode(CODE, LABEL_FC, NULL, NULL, NULL);
-    }
-  ;
-
-
-/*
-struct_controle 
-  : struct_if 
-  | struct_for
-  | struct_while
-  ;
-
-instr_avec_declaration
-  : declaration_variable SEMICOLON instr_avec_declaration
-  | afficher SEMICOLON instr_avec_declaration
-  | affectation SEMICOLON instr_avec_declaration
-  ;
-
-instr_sans_declaration
-  : struct_controle instr_sans_declaration
-  // | appel_fonction
-  | afficher SEMICOLON instr_avec_declaration
-  | affectation SEMICOLON instr_avec_declaration
-  ;
-*/
-
-suite_instructions 
-  : %empty
-  | instr SEMICOLON suite_instructions
-  | struct_if suite_instructions
-  | struct_while suite_instructions
-  | struct_for suite_instructions
-
-  | affectation_fonction suite_instructions
-  ;
-
-instr 
-  : declaration_variable  
-  | afficher 
-  | affectation
-  ;
-
+// FONCTION
 def_parametre 
   : %empty
   | parametre
@@ -377,6 +222,136 @@ liste_param
     {
       $$ = add_parametre($1, $3.ptr);
     }
+  ;
+
+
+depiler_adresse
+  : LPAR
+    { 
+      gencode(CODE, DEPILER_ADRESSE, NULL, NULL, NULL);
+    }
+  ;
+
+re_empiler_adresse
+  : RPAR
+    {
+      gencode(CODE, RE_EMPILER_ADRESSE, NULL, NULL, NULL);
+    }
+  ;
+
+type_fonction
+  : INT       { $$ = INT; }
+  | FLOAT     
+    { 
+      fprintf(stderr,"Ligne %d : Déclaration de fonction de type de retour INT uniquement.\n",nb_ligne);
+      exit(SEMANTIC_FAILURE);
+    }
+  ;
+
+fonction 
+  : type_fonction nom_fonction depiler_adresse def_parametre re_empiler_adresse LCURLY suite_instructions retour RCURLY 
+    {
+      assert($1 == INT);
+      unsigned type1;
+      switch($8.ptr->kind){
+        case(NAME):
+          assert($8.ptr->var->init);
+          type1 = $8.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
+          exit(SEMANTIC_FAILURE);
+          break;
+      }
+      if (type1 != $1){
+        fprintf(stderr,"Ligne %d : Incompatibilité de type entre la valeur renvoyée et le type de la fonction.\n",nb_ligne);
+        exit(SEMANTIC_FAILURE);
+        break;
+      }
+
+      gencode(CODE, RETOUR_FC, $8.ptr, NULL, NULL);
+      gencode(CODE, JR, NULL, NULL, NULL);
+    }
+  ;
+
+nom_fonction 
+  : ID 
+    {
+      // vérifier qu'une fonction portant ce nom n'existe pas déjà
+      SymTable * s = get_symtable($1);
+      if (s != NULL){
+        fprintf(stderr,"Ligne %d : Une fonction portant le nom '%s' est déjà déclarée.\n",nb_ligne,$1);
+        exit(SEMANTIC_FAILURE);
+      }
+      // création de la table des symboles pour cette fonction
+      SYMTAB = symtable_new($1);
+      add_symtable(SYMTAB);
+      add_fonction($1);
+      gencode(CODE, LABEL_FC, NULL, NULL, NULL);
+    }
+  ;
+
+fonction_principale 
+  : type_fonction fc_main LPAR RPAR LCURLY suite_instructions retour RCURLY 
+    {
+      // vérifier que type de retour est int
+      unsigned type1;
+
+      switch($7.ptr->kind){
+        case(NAME):
+          assert($7.ptr->var->init);
+          type1 = $7.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type1 = INT;
+          break;
+        case(CONST_FLOAT):
+          type1 = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Possibilité de renvoyer des int seulement.\n",nb_ligne);
+          exit(SEMANTIC_FAILURE);
+          break;
+      }
+
+      if (type1 != INT){
+        fprintf(stderr,"Ligne %d : Incompatibilité de type de la fonction return.\n",nb_ligne);
+        exit(SEMANTIC_FAILURE);
+        break;
+      }
+
+    }
+  ; 
+
+fc_main
+  : MAIN 
+    {
+      nom_fonction nf;
+      strncpy(nf,"main",15);
+      SYMTAB = symtable_new("main");
+      add_symtable(SYMTAB);
+      add_fonction(nf);
+      gencode(CODE, LABEL_FC, NULL, NULL, NULL);
+    }
+  ;
+
+// contenu des blocs
+suite_instructions 
+  : %empty
+  | instr SEMICOLON suite_instructions
+  | struct_if suite_instructions
+  | struct_while suite_instructions
+  | struct_for suite_instructions
+  | affectation_fonction suite_instructions
+  ;
+
+instr 
+  : declaration_variable  
+  | afficher 
+  | affectation
   ;
 
 // CONSTANTES  
@@ -2086,15 +2061,6 @@ debut_bloc
   }
   ;
 
-/* PAS UTILISÉ
-fin_bloc 
-  : RCURLY
-  {
-    gencode(CODE, FIN_BLOC, NULL, NULL, NULL);
-  }
-  ;
-*/
-
 evaluation_if
   : LPAR expr_bool RPAR 
   {
@@ -2238,9 +2204,8 @@ bloc
   | struct_if bloc
   | struct_while bloc
   | struct_for bloc
-// TO CHANGE
   | affectation_fonction bloc
-  
+  // pas déclaration
   ;
 
 // RETURN

@@ -1,14 +1,14 @@
 int main() {
-  if (1) {
+  if (1>0) {
     printf("alors1\n");
-    if (2) {
+    if (2>0) {
       printf("alors2\n");
-      if (0) {
+      if (0>0) {
         printf("alors3\n");
       } else {
         printf("sinon3\n");
       }
-      if (4) {
+      if (4>0) {
         printf("alors4\n");
       }
     } else {
@@ -16,10 +16,11 @@ int main() {
     }
   } else {
     printf("sinon1\n");
-    if (0) {
+    if (0>0) {
         printf("alors5\n");
     } else {
         printf("sinon5\n");
     }
   }
+  return 0;
 }

@@ -8,7 +8,7 @@ int fonction_1(int a, int b, int c) {
   printf("\nparam 3 :\n");
   print(c);
   printf("\n");
-  return a + b + c;
+  return (a + b + c);
 }
 
 int main() {

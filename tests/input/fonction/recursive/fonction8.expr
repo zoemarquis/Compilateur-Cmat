@@ -1,23 +1,23 @@
 const int A = 20;
 
 int fonction_1(int a) {
-  printf("param 1 :\n");
+  printf("debut fonction 1\na = ");
   print(a);
   printf("\n");
   int res = 14;
   if (a < A) {
-    printf("vrai\n");
+    printf("a < A\n");
     res = fonction_1(a + 20);
   } else {
     printf("faux\n");
   }
-  printf("ici\n");
-  return(res);
+  return(a);
 }
 
 int main() {
   int a;
   a = fonction_1(10);
+  printf("dans main, valeur de retour de fonction 1 = ");
   print(a);
   printf("\n");
   return 0;

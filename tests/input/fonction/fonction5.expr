@@ -1,8 +1,8 @@
 const int A = 2;
 
-int fonction_1(int a) { return a; }
+int fonction_1(int a) { return(a); }
 
-int fonction_2() { return A; }
+int fonction_2() { return(A); }
 
 int main() {
   int a;

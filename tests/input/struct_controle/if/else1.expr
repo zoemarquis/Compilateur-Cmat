@@ -1,13 +1,14 @@
 int main() {
-  if (0) {
+  if (0>0) {
     printf("alors1\n");
   } else {
     printf("sinon1\n");
   }
 
-  if (3) {
+  if (3>0) {
     printf("alors2\n");
   } else {
     printf("sinon2\n");
   }
+  return 0;
 }
