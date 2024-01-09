@@ -1009,6 +1009,44 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       }
       break;
 
+    case UOP_TILDE:
+      // Transposition d'une matrice
+      if (q->sym2->kind == NAME &&
+          q->sym2->var->type == MATRIX) {  // Toujours le cas normalement
+        fprintf(OUTPUT, "\tla $a1, %s\n", q->sym2->nom_var_fc);
+        fprintf(OUTPUT, "\tla $a2, %s\n", q->sym1->nom_var_fc);
+        fprintf(OUTPUT, "\tlw $t0, %s_rows\n", q->sym2->nom_var_fc);
+        fprintf(OUTPUT, "\tlw $t1, %s_cols\n", q->sym2->nom_var_fc);
+
+        fprintf(OUTPUT, "\tli $t3, 0\n");
+        fprintf(OUTPUT, "transpose_i_loop_%d:\n", cpt_label);
+        fprintf(OUTPUT, "\tli $t4, 0\n");
+
+        fprintf(OUTPUT, "transpose_j_loop_%d:\n", cpt_label);
+        fprintf(OUTPUT, "\tmul $t5, $t3, $t1\n");
+        fprintf(OUTPUT, "\tadd $t5, $t5, $t4\n");
+
+        fprintf(OUTPUT, "\tmul $t6, $t4, $t0\n");
+        fprintf(OUTPUT, "\tadd $t6, $t6, $t3\n");
+
+        fprintf(OUTPUT, "\tmul $t7, $t5, 4\n");
+        fprintf(OUTPUT, "\tadd $t7, $t7, $a1\n");
+        fprintf(OUTPUT, "\tl.s $f10, 0($t7)\n");
+
+        fprintf(OUTPUT, "\tmul $t8, $t6, 4\n");
+        fprintf(OUTPUT, "\tadd $t8, $t8, $a2\n");
+        fprintf(OUTPUT, "\ts.s $f10, 0($t8)\n");
+
+        fprintf(OUTPUT, "\taddi $t4, $t4, 1\n");
+        fprintf(OUTPUT, "\tbne $t4, $t1, transpose_j_loop_%d\n", cpt_label);
+
+        fprintf(OUTPUT, "\taddi $t3, $t3, 1\n");
+        fprintf(OUTPUT, "\tbne $t3, $t0, transpose_i_loop_%d\n", cpt_label);
+
+        cpt_label++;
+      }
+      break;
+
     // extraction
     case EXTR_LIGNE:
 

@@ -1,0 +1,15 @@
+int main() {
+  matrix a[2][2] = {{4,12},{12,4}};
+  
+  matrix c[2][2] = 12 / a;
+  printf("12 / a :\n");
+  printmat(c);
+  printf("\n");
+
+  c = a / 12;
+  printf("a / 12 :\n");
+  printmat(c);
+  printf("\n");
+
+  return 0;
+}

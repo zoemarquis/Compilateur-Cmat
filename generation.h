@@ -10,6 +10,7 @@ typedef struct _quad {
     BOP_MULT,
     BOP_DIV,
     UOP_MINUS,
+    UOP_TILDE,
     COPY,
     EXTR_LIGNE,
     EXTR_COLONNE,

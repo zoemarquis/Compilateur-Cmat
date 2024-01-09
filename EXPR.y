@@ -1644,7 +1644,35 @@ expr
       $$.ptr = newtemp(SYMTAB);
       gencode(CODE,UOP_MINUS,$$.ptr,$2.ptr,NULL); 
     }*/
-  | TILDE expr 
+  | TILDE expr {
+    // Vérifier que c'est une matrice
+    unsigned type;
+    switch($2.ptr->kind){
+      case(NAME):
+        type = $2.ptr->var->type;
+        break;
+      default:
+        fprintf(stderr,"Erreur de type dans une transposition.\n");
+        exit(SEMANTIC_FAILURE);
+        break;
+    }
+    
+    valeur val;
+    if (type == MATRIX) {
+      // Créer une matrice pour la var temporaire
+      // Dimensions inversées 
+      Matrix *m = create_matrix($2.ptr->var->val.matrix->c,$2.ptr->var->val.matrix->l); 
+      val.matrix = m;
+    }else{
+      fprintf(stderr,"Erreur de type dans une transposition.\n");
+      exit(SEMANTIC_FAILURE);
+      break;
+    }
+
+    $$.ptr = newtemp(SYMTAB, type, val);
+    gencode(CODE,UOP_TILDE,$$.ptr,$2.ptr,NULL);
+  }
+
   ; 
 
 extraction 

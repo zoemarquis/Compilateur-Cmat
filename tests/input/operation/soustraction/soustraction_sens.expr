@@ -1,0 +1,15 @@
+int main() {
+  matrix a[2][1] = {{2}, {1}};
+
+  matrix c[2][1] = 12 - a;
+  printf("12 - a :\n");
+  printmat(c);
+  printf("\n");
+
+  c = a - 12;
+  printf("a - 12 :\n");
+  printmat(c);
+  printf("\n");
+
+  return 0;
+}
