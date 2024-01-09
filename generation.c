@@ -188,7 +188,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
     case FIN_FOR:
       fprintf(OUTPUT, "\tbeqz $t0, fin_bloc_%d\n", cpt_bloc);  // si faux : fin
       fprintf(OUTPUT, "\tj debut_bloc_%d\n", cpt_bloc);  // si vrai : dans bloc
-      fprintf(OUTPUT, "\tfor_maj_%d:\n", cpt_bloc);
+      fprintf(OUTPUT, "for_maj_%d:\n", cpt_bloc);
       break;
 
     case JUMP_DEBUT_FOR:
@@ -480,8 +480,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           if (q->sym3->kind == NAME) {
             type = q->sym3->var->type;
           } else {
-            if (q->sym3->kind ==
-                CONST_INT)  // Vérifier que q->sym2->kind == CONST_INT aussi ??
+            if (q->sym3->kind == CONST_INT)
               type = INT;
             else if (q->sym3->kind == CONST_FLOAT)
               type = FLOAT;
@@ -493,13 +492,13 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           }
 
         } else {
+          // Cas : constante - matrice
           strcpy(mat, q->sym3->nom_var_fc);
           strcpy(cst, q->sym2->nom_var_fc);
           if (q->sym2->kind == NAME) {
             type = q->sym2->var->type;
           } else {
-            if (q->sym2->kind ==
-                CONST_INT)  // Vérifier que q->sym3->kind == CONST_INT aussi ??
+            if (q->sym2->kind == CONST_INT)
               type = INT;
             else if (q->sym2->kind == CONST_FLOAT)
               type = FLOAT;
@@ -533,8 +532,15 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
         fprintf(OUTPUT, "\t\tbge $t5, $t3, ligne_suivante_sub_%d\n", cpt_label);
 
         // Soustraction
-        fprintf(OUTPUT, "\t\tlwc1 $f2, 0($a0)\n");
-        fprintf(OUTPUT, "\t\tsub.s $f3, $f2, $f1\n");
+        if (q->sym2->kind == NAME && q->sym2->var->type == MATRIX) {
+          // Matrice - constante
+          fprintf(OUTPUT, "\t\tlwc1 $f2, 0($a0)\n");
+          fprintf(OUTPUT, "\t\tsub.s $f3, $f2, $f1\n");
+        } else {
+          // Constante - matrice
+          fprintf(OUTPUT, "\t\tlwc1 $f2, 0($a0)\n");
+          fprintf(OUTPUT, "\t\tsub.s $f3, $f1, $f2\n");
+        }
 
         fprintf(OUTPUT, "\t\tswc1 $f3, 0($a1)\n");  // Stockage du résultat
 
@@ -1254,7 +1260,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       fprintf(OUTPUT, "\tli $t0, 0\n");
       fprintf(OUTPUT, "\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
-      fprintf(OUTPUT, "\tfin_condi_%d:\n", cpt_label);
+      fprintf(OUTPUT, "fin_condi_%d:\n", cpt_label);
 
       cpt_label++;
       break;
@@ -1355,7 +1361,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       fprintf(OUTPUT, "\tli $t0, 0\n");
       fprintf(OUTPUT, "\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
-      fprintf(OUTPUT, "\tfin_condi_%d:\n", cpt_label);
+      fprintf(OUTPUT, "fin_condi_%d:\n", cpt_label);
 
       cpt_label++;
 
@@ -1436,7 +1442,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       fprintf(OUTPUT, "\tli $t0, 0\n");
       fprintf(OUTPUT, "\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
-      fprintf(OUTPUT, "\tfin_condi_%d:\n", cpt_label);
+      fprintf(OUTPUT, "fin_condi_%d:\n", cpt_label);
 
       cpt_label++;
 
@@ -1517,7 +1523,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       fprintf(OUTPUT, "\tli $t0, 0\n");
       fprintf(OUTPUT, "\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
-      fprintf(OUTPUT, "\tfin_condi_%d:\n", cpt_label);
+      fprintf(OUTPUT, "fin_condi_%d:\n", cpt_label);
 
       cpt_label++;
 
@@ -1598,7 +1604,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       fprintf(OUTPUT, "\tli $t0, 0\n");
       fprintf(OUTPUT, "\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
-      fprintf(OUTPUT, "\tfin_condi_%d:\n", cpt_label);
+      fprintf(OUTPUT, "fin_condi_%d:\n", cpt_label);
 
       cpt_label++;
 
@@ -1679,7 +1685,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       fprintf(OUTPUT, "\tli $t0, 0\n");
       fprintf(OUTPUT, "\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
-      fprintf(OUTPUT, "\tfin_condi_%d:\n", cpt_label);
+      fprintf(OUTPUT, "fin_condi_%d:\n", cpt_label);
 
       cpt_label++;
 
@@ -1760,7 +1766,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       fprintf(OUTPUT, "\tli $t0, 0\n");
       fprintf(OUTPUT, "\tsw $t0, %s\n", q->sym1->nom_var_fc);
 
-      fprintf(OUTPUT, "\tfin_condi_%d:\n", cpt_label);
+      fprintf(OUTPUT, "fin_condi_%d:\n", cpt_label);
 
       cpt_label++;
 

@@ -2250,6 +2250,11 @@ retour
       }
       $$ = $3;
     }
+  | %empty
+    {
+      fprintf(stderr,"Ligne %d : Il manque un return en dernière ligne de la fonction.\n",nb_ligne);
+      exit(SEMANTIC_FAILURE);
+    }
   ;
 
 
