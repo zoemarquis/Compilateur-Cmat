@@ -133,31 +133,12 @@ Symbol *symtable_indices(SymTable *t, Indices tuple) {
 
 Symbol *symtable_get(SymTable *t, char *id) {
   unsigned int i;
-
-  /*
-  if (t == GLOBAL) {
-    fprintf(stderr, "GLOBAL\n");
-  } else {
-    fprintf(stderr, "PAS GLOBAL\n");
-  }
-  fprintf(stderr, "%d\n", GLOBAL->size);
-  */
-
-  // regarder dans la table des symboles globales
-  // SymTable *global = get_symtable(GLOBAL);
-
   for (i = 0; i < GLOBAL->size && strcmp(GLOBAL->symbols[i].name, id) != 0; i++)
     ;
   if (i < GLOBAL->size) return &(GLOBAL->symbols[i]);
-
-  // La variable a déjà été déclarée -> la variable est une constante
-
-  // regarder dans la table des symboles actuelles
-
   for (i = 0; i < t->size && strcmp(t->symbols[i].name, id) != 0; i++)
     ;
   if (i < t->size) return &(t->symbols[i]);
-
   return NULL;
 }
 
@@ -172,19 +153,6 @@ Symbol *symtable_put(SymTable *t, char *id, variable *var) {
   sprintf(s->nom_var_fc, "%s%s", t->nom, s->name);  // nom pour zone data
   ++(t->size);
   return s;
-}
-
-// inutile ?
-void symtable_dump(SymTable *t) {
-  unsigned int i;
-  for (i = 0; i < t->size; i++) {
-    if (t->symbols[i].kind == CONST_INT)
-      fprintf(OUTPUT, "       %p = %d\n", &(t->symbols[i]),
-              t->symbols[i].var->val.entier);
-    if (t->symbols[i].kind == NAME)
-      fprintf(OUTPUT, "       %p = %s\n", &(t->symbols[i]), t->symbols[i].name);
-  }
-  fprintf(OUTPUT, "       --------\n");
 }
 
 void symtable_free(SymTable *t) {
