@@ -66,16 +66,53 @@ typedef struct _code {
   Quad *quads;
 } Code;
 
+/**
+ * @brief Crée un nouveau bloc de code
+ *
+ * @return Code*
+ */
 Code *code_new();
 
+/**
+ * @brief Génère le code correspondant au quad pour les 3 Symbols
+ *
+ * @param c le code
+ * @param k le quad
+ * @param s1 premier Symbol
+ * @param s2 deuxième Symbol
+ * @param s3 troisième Symbol
+ */
 void gencode(Code *c, enum quad_kind k, Symbol *s1, Symbol *s2, Symbol *s3);
 
+/**
+ * @brief Crée une nouvelle variable temporaire dans une SymTable
+ *
+ * @param t la SymTable
+ * @param type le type de la variable à ajouter
+ * @param v la valeur associée à cette variable
+ * @return Symbol*
+ */
 Symbol *newtemp(SymTable *t, unsigned type, valeur v);
 
+/**
+ * @brief Génère le code stocké dans Code
+ *
+ * @param c le code
+ */
 void code_dump(Code *c);
 
+/**
+ * @brief Supprime le code (nettoie la mémoire)
+ *
+ * @param c le code à supprimer
+ */
 void code_free(Code *c);
 
+/**
+ * @brief Ajoute une fonction à la liste des fonctions
+ *
+ * @param fc le nom de la fonction
+ */
 void add_fonction(nom_fonction fc);
 
 #endif

@@ -6,6 +6,7 @@
 #include "matrix.h"
 
 // extraction
+/* inutile
 Matrix *extraction(Matrix *a, int *lignes, int *colonnes, int n, int m) {
   Matrix *mnew = create_matrix(n, m);
   int k = 0;
@@ -18,6 +19,7 @@ Matrix *extraction(Matrix *a, int *lignes, int *colonnes, int n, int m) {
   }
   return mnew;
 }
+*/
 
 Extract creer_liste_extract(int valeur) {
   int *v = (int *)malloc(sizeof(int));
