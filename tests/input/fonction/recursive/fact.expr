@@ -1,0 +1,18 @@
+const int A = 3;
+const float B = 3.5;
+
+int fact(int n, int m, int x) {
+  if (n == 0) {
+    x = m;
+  } else {
+    x = fact(n - 1, n * m, x);
+  }
+  return (x);
+}
+
+int main() {
+  int a;
+  a = fact(4, 1, 0);
+  print(a);
+  return 0;
+}

@@ -12,9 +12,6 @@ typedef struct matrix_ {
 
 Matrix *create_matrix(unsigned l, unsigned c);
 
-// inutile ?
-// void printmat(Matrix *matrix);
-
 void delete_matrix(Matrix *matrix);
 
 void put_value_at(Matrix *m, unsigned ligne, unsigned colonne, float valeur);

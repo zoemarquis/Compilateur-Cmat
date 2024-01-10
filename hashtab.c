@@ -1,5 +1,6 @@
 #include "hashtab.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +22,9 @@ bool add_symtable(SymTable *s) {
     HASH_ADD_STR(th, nom, s);
     return true;
   } else {
-    // message d'erreur
+    fprintf(stderr, "La table des symboles de la fonction %s existe déjà.\n",
+            s->nom);
+    exit(SEMANTIC_FAILURE);
   }
   return false;
 }
@@ -45,9 +48,6 @@ void print_zone_data() {
               fprintf(OUTPUT, "%s: .word 0\n", s.nom_var_fc);
             }
             break;
-            // y a un s.var->val.entier pas à zéro
-            // d'où ça vient ? de toute façon on va tout init à zéro puis
-            // affecter donc la fuite va disparaitre
 
           case FLOAT:
             if (current_element == GLOBAL) {
@@ -97,40 +97,146 @@ void print_zone_data() {
   }
 }
 
+static void print_parametres(Parametres *p) {
+  for (unsigned i = 0; i < p->nb; i++) {
+    assert(p->liste[i]->kind == NAME);
+    assert(p->liste[i]->var->type == INT || p->liste[i]->var->type == FLOAT);
+    if (p->liste[i]->var->type == INT) {
+      printf("\tINT %s", p->liste[i]->name);
+    }
+    printf("\n");
+  }
+  printf("[%d paramètre(s)]\n", p->nb);
+}
+
+static void print_tos_parametres(SymTable *st) {
+  printf("Paramètre(s) : \n");
+  print_parametres(st->param);
+}
+
+static void print_ligne() {
+  for (int i = 0; i < 50; i++) {
+    printf("-");
+  }
+  printf("\n");
+}
+
+static void print_int(Symbol *s) {
+  assert(s->kind == CONST_INT || (s->kind == NAME && s->var->type == INT));
+  printf("\tINT %s\n", s->name);
+}
+
+static void print_float(Symbol *s) {
+  assert(s->kind == CONST_FLOAT || (s->kind == NAME && s->var->type == FLOAT));
+  printf("\tFLOAT %s\n", s->name);
+}
+
+static void print_constantes(SymTable *st) {
+  printf("CONSTANTES GLOBALES\n");
+  for (unsigned int i = 0; i < st->size; i++) {
+    Symbol *s = &(st->symbols[i]);
+    if (s->var->type == INT)
+      print_int(s);
+    else if (s->var->type == FLOAT)
+      print_float(s);
+  }
+}
+
+static bool in_param(Parametres *p, Symbol *s) {
+  for (unsigned i = 0; i < p->nb; i++) {
+    if (p->liste[i] == s) return true;
+  }
+  return false;
+}
+
+static void print_extract(Symbol *s) {
+  Extract e = s->extr;
+  printf("\tEXTRACT %s :\n\t\t[indices pour extraction] ", s->name);
+  for (unsigned i = 0; i < e.taille; i++) {
+    printf("%d,", e.liste[i]);
+  }
+  printf("\n");
+}
+
+static void print_indices(Symbol *s) {
+  printf("\tINDICES %s :\n\t\t[indices ligne et colonne] ", s->name);
+  printf("%d - %d", s->tuple.ligne, s->tuple.colonne);
+  printf("\n");
+}
+
+static void print_matrix(Symbol *s) { printf("\tMATRIX %s\n", s->name); }
+
+static void print_name(Symbol *s) {
+  switch (s->var->type) {
+    case INT:
+      print_int(s);
+      break;
+    case FLOAT:
+      print_float(s);
+      break;
+    case MATRIX:
+      print_matrix(s);
+      break;
+    default:
+      // printf("DEFAULT NAME\n");
+      break;
+  }
+}
+
+static void print_symbol(Symbol *s) {
+  switch (s->kind) {
+    case NAME:
+      print_name(s);
+      break;
+
+    case CONST_INT:
+      print_int(s);
+      break;
+
+    case CONST_FLOAT:
+      print_float(s);
+      break;
+
+    case STRING:
+      printf("\tSTRING %s = '%s'\n", s->name, s->string);
+      break;
+
+    case EXTRACT:
+      print_extract(s);
+      break;
+
+    case INDICES:
+      print_indices(s);
+      break;
+
+    case PARAMETRE:
+      // printf("PARAMETRE\n");
+      break;
+
+    case FONCTION:
+      break;
+
+    default:
+      printf("default");
+      break;
+  }
+}
+
 void print_table_hachage() {
-  fprintf(OUTPUT, "Table des symboles\n");
-  /*
-  for (Token *s = th; s != NULL; s = s->hh.next) {
-    fprintf(OUTPUT,"%s\n", s->name);
-    (s->var->init) ? fprintf(OUTPUT,"INITIALISÉ\n") : fprintf(OUTPUT,"NON
-  INIT\n");
-
-    if (s->var->init) {
-      switch (s->var->type) {
-        case INT:
-          fprintf(OUTPUT,"%d\n", s->var->valeur.entier);
-          fprintf(OUTPUT,"ENTIER\n");
-          break;
-
-        case FLOAT:
-          fprintf(OUTPUT,"%f\n", s->var->valeur.flottant);
-          fprintf(OUTPUT,"FLOTTANT\n");
-          break;
-
-        case MATRIX:
-          printmat(s->var->valeur.matrix);
-          fprintf(OUTPUT,"MATRIX\n");
-          break;
-
-        default:
-          fprintf(OUTPUT,"default\n");
-          fprintf(OUTPUT,"%d\n", s->var->type);
-          break;
+  printf("Table des symboles : \n");
+  print_constantes(GLOBAL);
+  SymTable *current_st, *tmp;
+  HASH_ITER(hh, th, current_st, tmp) {
+    if (current_st != GLOBAL) {
+      printf("Fonction %s :\n", current_st->nom);
+      print_tos_parametres(current_st);
+      for (unsigned int i = 0; i < current_st->size; i++) {
+        Symbol *s = &(current_st->symbols[i]);
+        if (!in_param(current_st->param, s)) print_symbol(s);
       }
     }
-    fprintf(OUTPUT,"--------------\n");
+    print_ligne();
   }
-  */
 }
 
 void delete_table_hachage() {

@@ -37,11 +37,8 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Il manque le nom du fichier output.\n");
         exit(EXIT_FAILURE);
       }
-    } /*else if (strcmp(argv[i], "-i") == 0) {
-  tos = true;
-}*/ else {
-      fprintf(stderr, "%s", argv[i]);
-      exit(MEMORY_FAILURE);
+    } else {
+      fprintf(stderr, "Paramètre inconnu : %s\n", argv[i]);
     }
   }
 
@@ -58,8 +55,9 @@ int main(int argc, char* argv[]) {
   print_zone_data();
   code_dump(CODE);
 
-  // if tos -> imprimer maintenant
-  // TODO
+  if (tos) {
+    print_table_hachage();
+  }
 
   // clean
   delete_table_hachage();
