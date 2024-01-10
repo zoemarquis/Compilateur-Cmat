@@ -1,20 +1,19 @@
 int main(){
     if (1 == 1){
-        printf("vrai\n");
+        printf("ok\n");
         if (1 == 0){
-            printf("coucou\n");
+            printf("fail\n");
             if (2 > 0){
-                printf("test\n");
+                printf("ok\n");
             }
             if (0 > 0){
-                printf("test2\n");
+                printf("fail\n");
             }
         }
     }
     if (1 == 1){
-        printf("truc\n");
+        printf("ok\n");
     }
-    printf("dans main \n");
 
     return 0;
 }

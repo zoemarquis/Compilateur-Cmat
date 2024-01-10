@@ -1,8 +1,8 @@
+/* erreur : incompatibilité de type */
 int main() {
   int i = 0;
   int jj;
 
-  /* erreur : incompatibilité de type */
   while (i < 10) {
     for (jj = 0; jj < 3; jj = jj + 1.5) {
       print(jj);

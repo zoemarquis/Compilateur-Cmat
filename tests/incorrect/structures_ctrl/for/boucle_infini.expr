@@ -1,8 +1,8 @@
+/* erreur : boucle à l'infini */
 int main() {
   int i;
   int jj;
 
-  /* erreur : boucle à l'infini */
   for (i = 0; i < 10; i = i + 1) {
     print(i);
     printf("\n");

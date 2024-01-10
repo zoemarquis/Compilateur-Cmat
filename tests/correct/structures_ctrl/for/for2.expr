@@ -8,7 +8,7 @@ int main() {
     for (jj = 10; jj < 10; jj = jj + 1) {
       /* rien ne doit s'afficher */
       print(jj);
-      printf("\n");
+      printf("\nfail\n");
     }
   }
 

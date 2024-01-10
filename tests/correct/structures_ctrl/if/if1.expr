@@ -1,0 +1,6 @@
+int main(){
+    if (1 > 2){
+        printf("fail\n");
+    }
+    return 0;
+}

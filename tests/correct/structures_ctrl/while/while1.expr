@@ -3,7 +3,6 @@ int main() {
   printf("debut while\n");
   
   while (i==0){
-    printf("dans while\n");
     print(i);
     i = 1;
   }

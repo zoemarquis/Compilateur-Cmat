@@ -1,7 +1,7 @@
+/* erreur : itérateur float */
 int main() {
   float jj;
 
-  /* erreur : itérateur float */
   for (jj = 0; jj < 3; jj = jj + 1.5) {
     print(jj);
     printf("\n");
