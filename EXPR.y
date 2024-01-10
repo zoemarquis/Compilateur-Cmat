@@ -1211,8 +1211,6 @@ expr
 
   | ID LBRACKET extraction RBRACKET // matrice une dimension
     {
-      // TODO : si taille de extraction = 1  (et que c'est pas -1)-> float 
-
       // 1. vérifier que ID est déclarée
       Symbol * id = symtable_get(SYMTAB,$1);
       if (id == NULL){
@@ -1529,9 +1527,6 @@ expr
         Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
         val.matrix = m;
       }
-
-      // TODO : vérif
-
       } else if (type1 == FLOAT || type2 == FLOAT){
           type = FLOAT;
       } else { 
@@ -1599,26 +1594,39 @@ expr
         Matrix *m = create_matrix($3.ptr->var->val.matrix->l, $3.ptr->var->val.matrix->c);
         val.matrix = m;
       }
-
-      // TODO : vérif
-
       } else {
         type = FLOAT; // un entier / par un entier -> un float
       }
       $$.ptr = newtemp(SYMTAB, type, val);
       gencode(CODE,BOP_DIV,$$.ptr,$1.ptr,$3.ptr); 
+    }  
+  | MINUS expr %prec MINUS
+    { 
+      unsigned type;
+      switch($2.ptr->kind){
+        case(NAME):
+          type = $2.ptr->var->type;
+          break;
+        case(CONST_INT):
+          type = INT;
+          break;
+        case(CONST_FLOAT):
+          type = FLOAT;
+          break;
+        default:
+          fprintf(stderr,"Ligne %d : Erreur de type dans une moins unaire.\n",nb_ligne);
+          exit(SEMANTIC_FAILURE);
+          break;
+      }
+      valeur val;
+      if (type == MATRIX){ // créer matrice aux mêmes dimensions
+        Matrix *m = create_matrix($2.ptr->var->val.matrix->l, $2.ptr->var->val.matrix->c);
+        val.matrix = m;
+      }
+      Symbol * ptr = symtable_const_int(SYMTAB, -1);
+      $$.ptr = newtemp(SYMTAB, type, val);
+      gencode(CODE,BOP_MULT,$$.ptr,$2.ptr,ptr);
     }
-
-
-
-
-
-  
-  //| MINUS expr %prec UMINUS
-    /*{ 
-      $$.ptr = newtemp(SYMTAB);
-      gencode(CODE,UOP_MINUS,$$.ptr,$2.ptr,NULL); 
-    }*/
   | TILDE expr {
     // Vérifier que c'est une matrice
     unsigned type;

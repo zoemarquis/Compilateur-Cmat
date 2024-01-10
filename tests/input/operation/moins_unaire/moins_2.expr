@@ -1,0 +1,7 @@
+int main() {
+  int a = 3;
+  matrix A[2][3] = {{1, 2, 3}, {6, 5, 4}};
+  A = -A;
+  printmat(A);
+  return 0;
+}

@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
       }
     } else {
       fprintf(stderr, "Paramètre inconnu : %s\n", argv[i]);
+      exit(0);
     }
   }
 

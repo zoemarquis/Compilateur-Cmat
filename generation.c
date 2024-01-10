@@ -608,10 +608,8 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(OUTPUT, "\ts.s $f2, %s\n", q->sym1->nom_var_fc);
         }
       }
-
       break;
 
-    // TODO : vérif
     case BOP_MULT:
       if ((q->sym2->kind == NAME && q->sym2->var->type == MATRIX) &&
           (q->sym3->kind == NAME && q->sym3->var->type == MATRIX)) {

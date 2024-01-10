@@ -33,7 +33,7 @@ SymTable *symtable_new(char *fonction) {
   t->temporary = 0;
   t->size = 0;
 
-  // créer une zone pour param ?
+  // créer une zone pour param
   t->param = init_param();
   return t;
 }
