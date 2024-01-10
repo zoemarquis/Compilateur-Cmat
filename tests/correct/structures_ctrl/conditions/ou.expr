@@ -1,27 +1,28 @@
 int main(){
     
-    if (0 || 0){
+    if (0!=0 || 0!=0){
         printf("0 || 0 = vrai\n");
     } else {
          printf("0 || 0 = faux\n");
     }
 
-    if (2 || 0){
+    if (2!=0 || 0!=0){
         printf("2 || 0 = vrai\n");
     } else {
         printf("2 || 0 = faux\n");
     }
 
-    if (0 || 1){
+    if (0!=0 || 1!=0){
         printf("0 || 1 = vrai\n");
     } else {
         printf("0 || 1 = faux\n");
     }
 
-    if (1 || 2){
+    if (1!=0 || 2!=0){
         printf("1 || 2 = vrai\n");
     } else {
         printf("1 || 2 = faux\n");
     }
     
+    return 0;
 }

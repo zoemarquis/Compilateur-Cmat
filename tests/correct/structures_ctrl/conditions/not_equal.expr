@@ -63,4 +63,6 @@ int main() {
   } else {
     printf("un_zero != un = faux\n");
   }
+
+  return 0;
 }

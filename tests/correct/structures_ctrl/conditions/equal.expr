@@ -65,4 +65,22 @@ int main(){
         printf("un_zero == un = faux\n");
     }
 
+    matrix A[2][2] = {{1,1},{1,1}};
+
+    if (A[0][1] == A[1][1]){
+        printf("ok\n");
+    } else {
+        printf("fail\n");
+    }
+
+    A = {{0,1},{1,1}};
+
+    if (A[0][0] == A[1][1]){
+        printf("fail\n");
+    } else {
+        printf("ok\n");
+    }
+
+    return 0;
+
 }

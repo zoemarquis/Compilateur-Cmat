@@ -1,5 +1,5 @@
+/* erreur de type */
 int main() {
-  /* erreur de type */
   int a = 1;
   printmat(a);
   return 0;

@@ -87,4 +87,6 @@ int main(){
         printf("k < i = faux\n");
     }
 
+    return 0;
+
 }
