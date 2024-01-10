@@ -1,6 +1,0 @@
-int main() {
-  matrix A[3] = {1, 2, 3};
-  matrix B[3] = {3, 2, 1};
-  printmat(A + B);
-  return 0;
-}

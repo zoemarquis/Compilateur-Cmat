@@ -1,5 +1,7 @@
 int main(){
     float a = 4.2;
     print(a);
+    printf("\n");
+    print(8.3 + 0.7);
     return 0;
 }

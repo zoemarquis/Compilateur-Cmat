@@ -1,0 +1,13 @@
+int main(){
+    matrix A[3] = {1,2,3};
+    printmat(A);
+
+    matrix B[3][2] = {{2,3},{3,9},{17,5}};
+    printmat(B);
+
+    matrix C[3] = {1, 2, 3};
+    matrix D[3] = {3, 2, 1};
+    printmat(C + D);
+    
+    return 0;
+}
