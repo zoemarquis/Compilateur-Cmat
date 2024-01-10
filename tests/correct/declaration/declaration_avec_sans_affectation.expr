@@ -5,4 +5,5 @@ int main(){
     float d = 5.3;
     int e = 6, f = 6, g= 7;
     float i = 9, j = 3.3, k;
+    return 0;
 }

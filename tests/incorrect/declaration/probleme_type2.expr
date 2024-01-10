@@ -1,0 +1,5 @@
+/* incompatibilité de type */
+int main() {
+  matrix A[2] = 4;
+  return 0;
+}

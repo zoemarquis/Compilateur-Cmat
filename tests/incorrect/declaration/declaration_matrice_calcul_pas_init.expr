@@ -1,0 +1,8 @@
+/* erreur : matrice pas déclarée */
+
+int main() {
+  matrix Z[2] = {3, 9};
+  matrix P[2] = Z + U;
+  printmat(P);
+  return 0;
+}

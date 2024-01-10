@@ -1,0 +1,6 @@
+int main() {
+  float a, c = 1, d, e = 8.3;
+  print(e);
+  return 0;
+}
+/* declaration de plusieurs float (avec à droite de l'affectation int ou float) sur la meme ligne avec calcul */

@@ -1,0 +1,6 @@
+/* erreur : dimension négative -> syntax error */
+
+int main() {
+  matrix C[-5][3];
+  return 0;
+}

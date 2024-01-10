@@ -1,0 +1,6 @@
+/* erreur : redéclaration d'une variable */
+
+int main(){
+    float A, A;
+    return 0;
+}

@@ -1,8 +1,0 @@
-int main() {
-  matrix A[3];
-  matrix B[4][5];
-  matrix C[4] = {1,2,3,4};
-  matrix D[2][3] = {{1,2,3},{9,8,7}};
-    /* printmat(A); */
-  /* printmat(B); */
-}

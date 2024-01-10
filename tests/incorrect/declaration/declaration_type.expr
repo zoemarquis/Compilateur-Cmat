@@ -1,0 +1,7 @@
+/* erreur : incompatibilité de type */
+
+int main(){
+    int a = 5.7;
+    print(a);
+    return 0;
+}

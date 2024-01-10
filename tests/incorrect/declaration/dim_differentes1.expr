@@ -1,0 +1,6 @@
+/* erreur : dimensions différentes */
+
+int main() {
+  matrix C[4] = {1,2,3};
+  return 0;
+}

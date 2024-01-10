@@ -1,6 +1,0 @@
-int main() {
-  int a, c=1, d, e=3+5+1;
-  print(e);
-
-  /* erreur : int a = 1, c = a+2; */
-}

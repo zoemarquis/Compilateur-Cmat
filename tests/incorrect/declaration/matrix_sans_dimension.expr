@@ -1,0 +1,5 @@
+/* déclaration de matrice sans dimension */
+int main() {
+  matrix A;
+  return 0;
+}

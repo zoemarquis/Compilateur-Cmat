@@ -1,0 +1,5 @@
+/* trop de dimension : syntax error */
+int main() { 
+    matrix B[4][5][6]; 
+    return 0; 
+}

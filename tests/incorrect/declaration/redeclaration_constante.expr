@@ -1,0 +1,9 @@
+/* erreur : redéclaration d'une constante */
+
+const int A = 3;
+const float B = 3.4;
+
+int main() {
+  float A;
+  return 0;
+}

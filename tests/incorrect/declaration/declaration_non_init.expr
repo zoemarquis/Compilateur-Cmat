@@ -1,0 +1,7 @@
+/* erreur : a n'est pas initialisée */
+
+int main() {
+  float a;
+  print(a);
+  return 0;
+}

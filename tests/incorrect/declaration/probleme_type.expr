@@ -1,0 +1,7 @@
+/* erreur : matrix dans autre chose qu'une matrix -> syntax error */
+
+int main() {
+  int a = {1, 2};
+  print(a);
+  return 0;
+}

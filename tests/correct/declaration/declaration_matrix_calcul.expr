@@ -1,0 +1,6 @@
+int main() {
+  matrix Z[2] = {3,9}, U[2] = {21,10};
+  matrix P[2] = Z + U;
+  printmat(P);
+  return 0;
+}
