@@ -973,9 +973,6 @@ une_var
     }
   | ID taille ASSIGN expr 
     { 
-      // vérif que expr est une matrix
-      // et que expr est de bonnes dimensions ?
-
       Matrix * m = create_matrix(1,$2); 
       valeur v;
       v.matrix = m;
@@ -985,9 +982,6 @@ une_var
     }
   | ID taille taille ASSIGN expr   
     { 
-      // vérif que expr est une matrix
-      // et que expr est de bonnes dimensions ?
-      
       Matrix *m = create_matrix($2,$3);
       valeur v;
       v.matrix = m;

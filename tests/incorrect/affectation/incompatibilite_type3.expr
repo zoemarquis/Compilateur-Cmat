@@ -1,5 +1,6 @@
+/* erreur de type */
 int main(){
     int blabla = 3;
     blabla[2] = 8;
-    /* erreur */
+    return 0;
 }

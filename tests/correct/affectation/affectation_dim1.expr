@@ -3,13 +3,11 @@ int main(){
     A[0] = 3;
     printmat(A);
 
-    /* erreur
-    A[3] = 3;  
-    */
-
     A[0] = A[1];
     printmat(A);
 
     A[1] = 4.5;
     printmat(A);
+
+    return 0;
 }

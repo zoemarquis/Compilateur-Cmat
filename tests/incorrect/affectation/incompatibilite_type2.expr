@@ -1,0 +1,9 @@
+/* erreur : incompatibilité de type */
+int main() {
+  int bla;
+  float blu = 3;
+  matrix A[2][2];
+
+  A = blu;
+  return 0;
+}

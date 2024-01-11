@@ -16,6 +16,10 @@ Parametres *init_param() {
 
 Parametres *add_parametre(Parametres *p, Symbol *s) {
   Parametres *param = (Parametres *)malloc(sizeof(Parametres));
+  if (param == NULL) {
+    fprintf(stderr, "Allocation mémoire échouée\n");
+    exit(MEMORY_FAILURE);
+  }
   param->liste = (Symbol **)realloc(p->liste, (p->nb + 1) * sizeof(Symbol *));
   if (param->liste == NULL) {
     fprintf(stderr, "Allocation mémoire échouée\n");

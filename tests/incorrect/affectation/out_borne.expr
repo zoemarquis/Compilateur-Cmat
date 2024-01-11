@@ -1,0 +1,9 @@
+/* en dehors des bornes */
+int main() {
+  matrix A[2] = {1, 2};
+
+  A[3] = 3;
+  printmat(A);
+
+  return 0;
+}

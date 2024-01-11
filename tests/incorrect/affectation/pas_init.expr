@@ -1,16 +1,8 @@
+/* erreur : A pas initialisée */
 int main(){
     matrix A[2][2];
     matrix B[2][2];
-    /*
     B = A;
     printmat(B);
-    */
-
-
-    int bla;
-    float blu;
-
-    /*
-    blu = bla ;
-    */
+    return 0;
 }

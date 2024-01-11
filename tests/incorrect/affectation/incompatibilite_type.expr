@@ -1,0 +1,8 @@
+/* erreur : incompatibilité de type */
+int main() {
+  int bla;
+  float blu = 3;
+
+  blu = bla;
+  return 0;
+}

@@ -1,0 +1,11 @@
+/* pas de comparaison de matrice */
+int main(){
+    matrix A[2] = {1,2};
+    matrix B[2] = A;
+
+    if (A == B){
+        printf("fail\n");
+    }
+
+    return 0;
+}
