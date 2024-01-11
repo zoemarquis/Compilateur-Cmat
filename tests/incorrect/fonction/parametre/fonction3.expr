@@ -1,6 +1,7 @@
-const int A = 2;
 
 /* erreur : mauvais nombre de paramètre */
+
+const int A = 2;
 
 int fonction_1(int a) { return(A); }
 

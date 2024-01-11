@@ -1,5 +1,0 @@
-int main() {
-  matrix A[2] = {1, 2};
-  /* erreur : mauvais type de retour */
-  return A;
-}

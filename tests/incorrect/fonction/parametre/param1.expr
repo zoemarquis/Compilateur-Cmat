@@ -1,6 +1,6 @@
-const int A = 2;
-
 /* erreur : type des paramètres */
+
+const int A = 2;
 
 int fonction_1(int a, int b) { return (A); }
 

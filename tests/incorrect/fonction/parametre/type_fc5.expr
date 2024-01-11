@@ -1,3 +1,4 @@
+/* erreur de type dans parametre */
 const int A = 3;
 
 int fonction_1(int a, float b) { return (A); }

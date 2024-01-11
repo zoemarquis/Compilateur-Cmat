@@ -1,3 +1,5 @@
+/* erreur : fonction de type int seulement */
+
 const float A = 1.5;
 
 float fonction_1(float a) { return (A); }
@@ -11,5 +13,3 @@ int main() {
   printf("\n");
   return 0;
 }
-
-/* erreur : fonction de type int seulement */

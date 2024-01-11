@@ -1,0 +1,5 @@
+/* erreur : mauvais type de retour */
+
+int main() {
+  return 0.1;
+}

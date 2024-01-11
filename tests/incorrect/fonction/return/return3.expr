@@ -1,0 +1,5 @@
+/* erreur : mauvais type de retour */
+int main() {
+  matrix A[2] = {1, 2};
+  return (A[0]);
+}

@@ -1,6 +1,6 @@
-const int A = 2;
-
 /* erreur de type */
+
+const int A = 2;
 
 int fonction_1(int a) { return(A); }
 

@@ -1,6 +1,0 @@
-const int A = 18;
-
-int main() {
-  /* erreur : mauvais type de retour */
-  return A;
-}

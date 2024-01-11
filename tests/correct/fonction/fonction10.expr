@@ -4,7 +4,7 @@ int fonction_1(int a) {
   printf("param 1 :\n");
   print(a);
   printf("\n");
-  return a;
+  return(a);
 }
 
 int main() {

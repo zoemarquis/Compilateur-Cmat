@@ -1,5 +1,0 @@
-int main() {
-  int a = 1, b = 3, c = 9;
-  /* erreur : mauvais type de retour */
-  return b + c;
-}

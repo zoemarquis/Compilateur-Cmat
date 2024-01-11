@@ -1,4 +1,0 @@
-int main() {
-  /* erreur : mauvais type de retour */
-  return 0.1;
-}
