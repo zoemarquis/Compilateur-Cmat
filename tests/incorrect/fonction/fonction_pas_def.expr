@@ -1,0 +1,8 @@
+/* appel fonction non existante  */
+
+int main() {
+  int a;
+  a = fonction_1(8);
+  print(a);
+  return 0;
+}

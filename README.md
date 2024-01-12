@@ -20,7 +20,5 @@ make
 
 #### Exemple
 ```bash
-./cmat [-version] [-tos] [-o nom_fichier] < fichier_a_compiler
+./cmat -o output.txt < tests/enonce.expr
 ```
-
-### Script de test

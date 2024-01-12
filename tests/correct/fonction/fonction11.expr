@@ -1,0 +1,21 @@
+const int A = 2;
+
+int fonction_1(int a, int b) {
+  printf("param 1 : (expected = 30)\n");
+  print(a);
+  printf("\nparam 2 : (expected = 9)\n");
+  print(b);
+  printf("\n");
+  return 15;
+}
+
+int fonction_2() { return (A); }
+
+int main() {
+  int a;
+  a = fonction_1(10+5+15, 9);
+  printf("retour de fontion_1 : expected = 15\n");
+  print(a);
+  printf("\n");
+  return 0;
+}

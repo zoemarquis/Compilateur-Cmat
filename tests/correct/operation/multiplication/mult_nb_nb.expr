@@ -5,23 +5,19 @@ int main(){
     int c;
     float d;
 
-    /* erreur : incompatibilité de types c = a / b;*/
-    /* int / int -> float */
-    /* erreur : incompatibilité de types c = a / z;*/
+    c = a * b;
+    print(c);
+    printf("\n");
     
-    d = a / b;
+    d = z * y;
     print(d);
     printf("\n");
 
-    d = z / y;
+    d = a * z;
     print(d);
     printf("\n");
 
-    d = a / z;
-    print(d);
-    printf("\n");
-
-    d = z / a;
+    d = z * a;
     print(d);
     printf("\n");
 

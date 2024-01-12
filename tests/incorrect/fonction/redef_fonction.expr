@@ -1,0 +1,12 @@
+/* redef une meme fonction  */
+
+int fonction_1(int a) { return 0; }
+
+int fonction_1() { return 0; }
+
+int main() {
+  int a;
+  a = fonction_1(8);
+  print(a);
+  return 0;
+}

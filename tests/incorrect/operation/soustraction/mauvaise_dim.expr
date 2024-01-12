@@ -1,0 +1,5 @@
+int main(){
+    matrix A[4] = {1,2,3,4}, B[3] = {1,2,3};
+    matrix C[4] = A-B;
+    return 0;
+}

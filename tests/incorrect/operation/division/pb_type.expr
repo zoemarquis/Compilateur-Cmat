@@ -1,0 +1,16 @@
+int main(){
+    int a = 3, b = 4;
+    float z = 1.5, y = 0.5;
+
+    int c;
+    float d;
+
+    c = a / b;
+    print(c);
+    printf("\n");
+    /* erreur : incompatibilité de types c = a / z; -> int / int => float */
+
+    return 0;
+}
+
+/* OK */

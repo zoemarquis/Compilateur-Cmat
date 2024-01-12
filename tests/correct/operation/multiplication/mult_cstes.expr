@@ -1,0 +1,17 @@
+const int A = 3;
+
+int main() {
+  int a = A * 2;
+  print(a);
+  printf("\n");
+
+  float b = A * 2.5;
+  print(b);
+  printf("\n");
+
+  matrix c[2][2] = {{1, 1}, {1, 1}};
+  printmat(c * A);
+  printf("\n");
+
+  return 0;
+}

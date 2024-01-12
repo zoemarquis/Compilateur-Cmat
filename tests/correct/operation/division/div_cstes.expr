@@ -1,0 +1,32 @@
+const int A = 3;
+const float B = 1.5;
+
+int main() {
+  /* int / const int */
+  float a = A / 2;
+  print(a);
+  printf("\n");
+
+  a = 2 / A;
+  print(a);
+  printf("\n");
+
+  /* float / const int */
+  float b = A / 2.5;
+  print(b);
+  printf("\n");
+
+  b = 2.5 / A;
+  print(b);
+  printf("\n");
+
+  /* matrix / const int */
+  matrix c[2][2] = {{1, 1}, {1, 1}};
+  printmat(c / A);
+
+  printf("\n");
+
+  printmat(A / c);
+  return 0;
+}
+/* OK */

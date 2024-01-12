@@ -2,23 +2,21 @@ int main(){
     int a = 3, b = 4;
     float z = 1.5, y = 0.5;
 
-    int c;
     float d;
-
-    c = a * b;
-    print(c);
-    printf("\n");
-    /* erreur : incompatibilité de types c = a * z;*/
     
-    d = z * y;
+    d = a / b;
     print(d);
     printf("\n");
 
-    d = a * z;
+    d = z / y;
     print(d);
     printf("\n");
 
-    d = z * a;
+    d = a / z;
+    print(d);
+    printf("\n");
+
+    d = z / a;
     print(d);
     printf("\n");
 

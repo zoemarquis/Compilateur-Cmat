@@ -1,0 +1,59 @@
+int main(){
+
+    if (6*2 == 3*4){
+        printf("ok\n");
+    } else {
+        printf("fail\n");
+    }
+
+    if (6*2 <= 3*4){
+        printf("ok\n");
+    } else {
+        printf("fail\n");
+    }
+
+    if (6*2 >= 3*4){
+        printf("ok\n");
+    } else {
+        printf("fail\n");
+    }
+
+    if (6*2 < 3*4){
+        printf("fail\n");
+    } else {
+        printf("ok\n");
+    }
+
+    if (6*2 > 3*4){
+        printf("fail\n");
+    } else {
+        printf("ok\n");
+    }
+
+    if (6*2 == 3*4 && 1*3 == 3*1){
+        printf("ok\n");
+    } else {
+        printf("fail\n");
+    }
+
+    if (6*2 == 3*4 && 1*3 != 3*1){
+        printf("fail\n");
+    } else {
+        printf("ok\n");
+    }
+
+    if (6*2 != 3*4 || 1*3 != 3*1){
+        printf("fail\n");
+    } else {
+        printf("ok\n");
+    }
+
+    if (!(6*2 != 3*4)){
+        printf("ok\n");
+    } else {
+        printf("fail\n");
+    }
+
+    return 0;
+
+}

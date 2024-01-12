@@ -1,0 +1,32 @@
+int main() {
+  int a = 1;
+  int b = 2;
+  int c = 3;
+  int d = a * 3;
+  int e = b * b;
+  int f = c * 2;
+  int g = 3 * 3;
+  int h = 7 * 2 * 1;
+  int i = 7 * a * 1 * 2 * b * c;
+
+  print(a);
+  printf("\n");
+  print(b);
+  printf("\n");
+  print(c);
+  printf("\n");
+  print(d);
+  printf("\n");
+  print(e);
+  printf("\n");
+  print(f);
+  printf("\n");
+  print(g);
+  printf("\n");
+  print(h);
+  printf("\n");
+  print(i);
+  printf("\n");
+
+  return 0;
+}
