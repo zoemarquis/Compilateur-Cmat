@@ -38,8 +38,8 @@
 %token <floatval> V_FLOAT
 %token <string> V_STRING
 
-%left MULT DIV EQUAL NOT_EQUAL OR AND
-%left PLUS MINUS GTOE LTOE GREATER_THAN LESS_THAN
+%left PLUS MINUS 
+%left MULT DIV EQUAL NOT_EQUAL OR AND GTOE LTOE GREATER_THAN LESS_THAN
 %nonassoc UMINUS TILDE NOT
 
 %type <type> type_var type_fonction

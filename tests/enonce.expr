@@ -1,0 +1,37 @@
+int main() {
+    matrix A[2][2]={{12,27},{64,42}}, IA[2][2], B[2][1]={{1},{8}}, X[2][1];
+    float det;
+    
+    /* Calcul de la matrice inverse de A */
+    IA = ~A;
+    printmat(IA); /* OK */
+
+    IA = IA[1;0][1;0];
+    printmat(IA); /* OK */
+
+    IA[0][1] = -IA[0][1];
+    IA[1][0] = -IA[1][0];
+    printmat(IA); /* OK */
+   
+    /* Calcul du déterminant de A */
+    det = 1/(A[0][0]*A[1][1]-A[0][1]*A[1][0]);
+
+    print(det);
+    printf("\n"); /* OK */
+
+    IA = det*IA;
+    printmat(IA); /* OK */
+    
+    /* Calcul de X : chez nous matrice 1 dimension = 1 ligne -> B et X sont de dimensions [2][1]*/
+    X = IA*B;
+    
+    /* Affichage du résultat */
+    printf("La solution de l'équation AX=B, avec A = ");
+    printmat(A);
+    printf("et B = ");
+    printmat(B);
+    printf("est X= "); /* OK */
+    printmat(X);
+    printf("\n");
+    return 0;
+}
