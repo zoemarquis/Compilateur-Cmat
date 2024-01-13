@@ -3,13 +3,13 @@ int main() {
   printf("a : ");
   printmat(a);
 
-  matrix bb[5][2];
-  bb = ~a;
-  printf("bb : ");
-  printmat(bb);
+  matrix b[5][2];
+  b = ~a;
+  printf("b : ");
+  printmat(b);
   
   matrix c[2][5];
-  c = ~bb;
+  c = ~b;
   printf("c : ");
   printmat(c);
 

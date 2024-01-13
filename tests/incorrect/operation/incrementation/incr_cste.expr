@@ -1,0 +1,10 @@
+/* erreur A est constante */
+const int A = 1;
+
+int main(){
+    A++;
+    print(A);
+    printf("\n");
+    
+    return 0;
+}

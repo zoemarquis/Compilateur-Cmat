@@ -1,12 +1,12 @@
 
 %{
-  #include "cmat.h" // pas besoin ?
+  #include "cmat.h"
   #include "error.h"
   #include "symbtab.h"
   #include "generation.h"
   #include "hashtab.h"
-  #include <stdio.h>// ?
-  #include <stdlib.h>// ?
+  #include <stdio.h>
+  #include <stdlib.h>
 
   extern void yyerror(const char * s);
   extern int yylex();
@@ -1050,7 +1050,9 @@ matrix_remplir_colonne
 
 valeur_matrix
     : V_INT     { $$ = (float) $1; }
+    | MINUS V_INT {$$ = (float) -$2; }
     | V_FLOAT   { $$ = $1; }
+    | MINUS V_FLOAT {$$ = -$2; }
     ;
 
 // AFFICHER

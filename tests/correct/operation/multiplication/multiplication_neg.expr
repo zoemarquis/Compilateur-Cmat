@@ -1,0 +1,31 @@
+int main(){
+    int arina = 2, benoit = -4;
+    float candice = -3.2;
+    matrix domenica[2][2] = {{1,1},{2,2}};
+    
+    print(arina * benoit);
+    printf("\n");
+    
+    print(benoit * benoit);
+    printf("\n");
+    
+    print(benoit * candice);
+    printf("\n");
+    
+    domenica = -domenica;
+    printmat(domenica);
+    
+    printf("mult matrice negative par int negative\n");
+    printmat(domenica * benoit);
+    printf("\n");
+    
+    printf("mult matrice negative par float negative\n");
+    printmat(domenica * candice);
+    printf("\n");
+    
+    printf("mult matrice negative par float negative\n");
+    printmat(domenica * domenica);
+    printf("\n");
+    
+    return 0;
+}

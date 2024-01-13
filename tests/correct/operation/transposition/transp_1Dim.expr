@@ -3,10 +3,10 @@ int main() {
   printf("a : \n");
   printmat(a);
 
-  matrix bb[3][1];
-  bb = ~a;
-  printf("bb : \n");
-  printmat(bb);
+  matrix b[3][1];
+  b = ~a;
+  printf("b : \n");
+  printmat(b);
 
   return 0;
 }

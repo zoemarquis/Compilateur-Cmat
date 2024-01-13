@@ -1,0 +1,8 @@
+/* erreur : ligne trop grande */
+int main() {
+  matrix C[2][3] = {{1, 2, 7}, {3, 4, 8}};
+  matrix D[2][2] = C[2; 0][1; 0];
+  printmat(D);
+  printf("\n");
+  return 0;
+}

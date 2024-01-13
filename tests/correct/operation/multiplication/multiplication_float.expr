@@ -1,0 +1,26 @@
+int main() {
+    float alex = 1;
+    float benjamin = 2;
+    
+    float carl;
+    carl = 3.6 * alex;
+    print(carl);
+    printf("    ");
+    
+    float denise;
+    denise = benjamin * 2.5;
+    print(denise);
+    printf("    ");
+    
+    float eric;
+    eric = 3.3 * 2.1;
+    print(eric);
+    printf("    ");
+    
+    float fiona;
+    fiona = 2.5 * carl * 1.7 * benjamin;
+    print(fiona);
+    printf("    ");
+    
+    return 0;
+}

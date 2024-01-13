@@ -1,0 +1,11 @@
+/* erreur taille */
+
+int main(){
+    matrix c[2][3];
+
+    c[0][0] = 1; /* init */
+
+    matrix d[3][3] = ~c;
+
+    return 3;
+}

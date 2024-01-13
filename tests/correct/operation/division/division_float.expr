@@ -1,0 +1,26 @@
+int main() {
+    float aurore = 1;
+    float bernard = 2;
+    
+    float camille;
+    camille = 3.6 / bernard;
+    print(camille);
+    printf("    ");
+    
+    float damien;
+    damien = aurore / 0.2;
+    print(damien);
+    printf("    ");
+    
+    float estelle;
+    estelle = 7.2 / 0.9;
+    print(estelle);
+    printf("    ");
+    
+    float francis;
+    francis = 12 / bernard / 2.4 / damien;
+    print(francis);
+    printf("    ");
+    
+    return 0;
+}

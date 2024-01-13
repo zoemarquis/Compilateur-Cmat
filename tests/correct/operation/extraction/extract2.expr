@@ -1,0 +1,14 @@
+int main(){
+    matrix C[2][3] = {{1,2,7},{3,4,8}};
+    matrix D[2][2] = C[1;0][1;0];
+    printmat(D);
+    printf("\n");
+
+    matrix E[3][3] = {{1,2,3},{3,4,5},{4,5,6}};
+    matrix F[8][3];
+    F = E[*;0;*;2][0;1;0];
+    printmat(F);
+    printf("\n");
+
+    return 0;
+}

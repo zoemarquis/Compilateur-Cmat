@@ -23,4 +23,6 @@ int main(){
 
     Celine = Celine + C[1][2];
     printmat(Celine);
+
+    return 0;
 }

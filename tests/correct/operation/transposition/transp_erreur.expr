@@ -1,0 +1,9 @@
+int main(){
+    matrix c[2][3];
+
+    c[0][1] = 1; /* init */
+    matrix e[3][2] = ~c; 
+    printmat(e);
+
+    return 3;
+}

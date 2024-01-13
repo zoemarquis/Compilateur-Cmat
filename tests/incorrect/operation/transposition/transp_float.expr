@@ -1,0 +1,8 @@
+
+/* erreur de type : */
+int main(){
+    float b = 5.5;
+    b = ~b;
+
+    return 3;
+}

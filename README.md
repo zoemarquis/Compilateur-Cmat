@@ -21,4 +21,5 @@ make
 #### Exemple
 ```bash
 ./cmat -o output.txt < tests/enonce.expr
+spim -file output.txt
 ```

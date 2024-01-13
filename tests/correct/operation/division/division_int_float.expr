@@ -1,0 +1,29 @@
+int main() {
+    int aline = 1;
+    int brigitte = 2;
+    
+    float carlos = 6.9;
+    float daniel = 3;
+    
+    float elora;
+    elora = carlos / daniel;
+    print(elora);
+    printf("    ");
+    
+    float francois;
+    francois = brigitte / aline;
+    print(francois);
+    printf("    ");
+    
+    float gilles;
+    gilles = daniel / brigitte / 0.3;
+    print(gilles);
+    printf("    ");
+    
+    float hassan;
+    hassan = 72 / aline / 3.6 / daniel / 2.4;
+    print(hassan);
+    printf("    ");
+    
+    return 0;
+}

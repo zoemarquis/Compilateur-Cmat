@@ -13,12 +13,11 @@ int main() {
   printf("\n");
 
   a--;
-    print(a);
-    printf("\n");
-
-    --a;
-    print(a);
-    printf("\n");
+  print(a);
+  printf("\n");
+  --a;
+  print(a);
+  printf("\n");
 
   return 0;
 }

@@ -1,0 +1,28 @@
+int main() {
+    int andre = 1;
+    int bill = 2;
+    int claire;
+    claire = 3;
+    
+    int dany;
+    dany = andre * 3;
+    print(dany);
+    printf("    ");
+    
+    int etienne;
+    etienne = bill * bill;
+    print(etienne);
+    printf("    ");
+    
+    int frederic;
+    frederic = 12 * 7;
+    print(frederic);
+    printf("    ");
+    
+    int grace;
+    grace = 2 * claire * 5 * andre * 4;
+    print(grace);
+    printf("    ");
+    
+    return 0;
+}

@@ -1,0 +1,28 @@
+int main() {
+    int ariane = 1;
+    int brandon = 8;
+    int cecile;
+    cecile = 3;
+    
+    float didier;
+    didier = brandon / 2;
+    print(didier);
+    printf("    ");
+    
+    float eve;
+    eve = cecile / ariane;
+    print(eve);
+    printf("    ");
+    
+    float fanny;
+    fanny = 25 / 5;
+    print(fanny);
+    printf("    ");
+    
+    float gisele;
+    gisele = 400 / didier / 2 / cecile / 25;
+    print(gisele);
+    printf("    ");
+    
+    return 0;
+}

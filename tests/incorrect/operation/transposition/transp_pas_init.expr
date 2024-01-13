@@ -1,0 +1,8 @@
+/* erreur : matrix pas init */
+int main() {
+  matrix c[2][3];
+
+  matrix b[3][2] = ~c;
+
+  return 3;
+}

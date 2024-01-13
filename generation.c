@@ -210,7 +210,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           fprintf(stderr, "Incompatibilité de types à l'affectation de %s.\n",
                   q->sym1->nom_var_fc);
           exit(SEMANTIC_FAILURE);
-        }  // plutot un assert ?
+        }
         fprintf(OUTPUT, "\tsw $t0,%s\n", q->sym1->nom_var_fc);
       }
 
@@ -327,7 +327,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
               type = INT;
             else if (q->sym3->kind == CONST_FLOAT)
               type = FLOAT;
-            else {  // cas impossible ?
+            else {  // cas impossible
               fprintf(stderr, "Incompatibilité de types dans une addition.\n");
               exit(SEMANTIC_FAILURE);
             }
@@ -342,7 +342,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
               type = INT;
             else if (q->sym2->kind == CONST_FLOAT)
               type = FLOAT;
-            else {  // cas impossible ?
+            else {  // cas impossible
               fprintf(stderr, "Incompatibilité de types dans une addition.\n");
               exit(SEMANTIC_FAILURE);
             }
@@ -677,8 +677,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           if (q->sym3->kind == NAME) {
             type = q->sym3->var->type;
           } else {
-            if (q->sym3->kind ==
-                CONST_INT)  // Vérifier que q->sym2->kind == CONST_INT aussi ??
+            if (q->sym3->kind == CONST_INT)
               type = INT;
             else if (q->sym3->kind == CONST_FLOAT)
               type = FLOAT;
@@ -694,8 +693,7 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
           if (q->sym2->kind == NAME) {
             type = q->sym2->var->type;
           } else {
-            if (q->sym2->kind ==
-                CONST_INT)  // Vérifier que q->sym3->kind == CONST_INT aussi ??
+            if (q->sym2->kind == CONST_INT)
               type = INT;
             else if (q->sym2->kind == CONST_FLOAT)
               type = FLOAT;
@@ -1233,7 +1231,6 @@ static void quad_dump(Stack *pile_bloc, Stack *pile_if, Stack *pile_while,
       fprintf(OUTPUT, "\tadd $t6, $t6, $t5\n");
       fprintf(OUTPUT, "\tlw $t7, 0($t6)\n");
       fprintf(OUTPUT, "\tmtc1 $t7, $f12\n");
-      // cvt ?
 
       fprintf(OUTPUT, "\tli $v0, 2\n");
       fprintf(OUTPUT, "\tsyscall\n");

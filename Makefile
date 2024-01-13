@@ -51,4 +51,3 @@ generation.o: generation.c generation.h symbtab.h error.h pile.h
 
 clean:
 	rm -f cmat *.o EXPR.tab.c EXPR.tab.h lex.yy.c *~
-	rm -rf output/*

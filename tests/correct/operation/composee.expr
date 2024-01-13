@@ -1,0 +1,15 @@
+/* plusieurs opérations */
+
+int main(){
+    int a = 3;
+    float b = 5;
+    matrix c[2][3] = {{1,-2,3},{-1,2,3}};
+
+    printmat(-c * b);
+    printf("\n");
+
+    printmat(~c / a);
+    printf("\n");
+
+    return 0;
+}

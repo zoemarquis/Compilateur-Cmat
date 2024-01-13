@@ -1,0 +1,29 @@
+int main() {
+    int adel = 1;
+    int bruce = 2;
+    
+    float cindy = 3.3;
+    float david = 5;
+    
+    float elie;
+    elie = cindy * david;
+    print(elie);
+    printf("    ");
+    
+    float florence;
+    florence = adel * bruce;
+    print(florence);
+    printf("    ");
+    
+    float gustav;
+    gustav = bruce * cindy * 1.2;
+    print(gustav);
+    printf("    ");
+    
+    float helen;
+    helen = 2 * adel * 3.7 * david * 0.4;
+    print(helen);
+    printf("    ");
+    
+    return 0;
+}
